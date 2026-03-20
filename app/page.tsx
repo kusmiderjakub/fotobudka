@@ -1,17 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 const PRODUCT_FRIENDLY_URL = "fespa-printbox-card";
 const EDITOR_MODULE_ID = 350;
 const PRODUCT_IMAGE =
   "https://cdn1.getprintbox.com/pbx2-masterpiece-ai/media/productimage/b6f1e16a-c9aa-46d5-aa6d-43269eaa1f90/CRSTD0024-Love_in_Focus_thumb_900x900?mt=1773764946.883063";
 
 export default function Home() {
-  const router = useRouter();
 
   const handleStart = () => {
-    router.push(`/editor/${EDITOR_MODULE_ID}?productId=${PRODUCT_FRIENDLY_URL}`);
+    window.location.href = `/editor/${EDITOR_MODULE_ID}?productId=${PRODUCT_FRIENDLY_URL}`;
   };
 
   return (
