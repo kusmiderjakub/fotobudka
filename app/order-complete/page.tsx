@@ -1,12 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const serifFont =
   "ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif";
 
 export default function OrderCompletePage() {
+  return (
+    <Suspense>
+      <OrderCompleteContent />
+    </Suspense>
+  );
+}
+
+function OrderCompleteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId");

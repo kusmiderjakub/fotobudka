@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { Suspense, useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import Script from "next/script";
@@ -40,6 +40,14 @@ declare global {
 type OverlayStep = "hidden" | "email" | "processing" | "qr" | "done";
 
 export default function EditorPage() {
+  return (
+    <Suspense>
+      <EditorContent />
+    </Suspense>
+  );
+}
+
+function EditorContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
