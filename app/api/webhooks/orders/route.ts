@@ -1,24 +1,70 @@
 import { NextRequest, NextResponse } from "next/server";
-import { markOrderPaid } from "@/lib/printbox";
+import { Redis } from "@upstash/redis";
+import { sendRenderedFile } from "@/lib/email";
+
+const redis = Redis.fromEnv();
+
+interface PrintingOrder {
+  render_status: "SUCCESS" | "NEW" | "FAILURE";
+  render_url: string | null;
+  render_time: string | null;
+}
+
+interface WebhookPayload {
+  hook_id: number;
+  model: string;
+  event: string;
+  data: {
+    number: string;
+    status: string;
+    printing_orders?: PrintingOrder[];
+    [key: string]: unknown;
+  };
+}
 
 // Printbox webhook callback for order events
-// Subscribe via: POST /api/ec/v4/subscriptions/
-// with hooks: [{ model: "Order", events: ["created"] }]
 export async function POST(request: NextRequest) {
   try {
-    const payload = await request.json();
+    const payload: WebhookPayload = await request.json();
+    console.log("[webhook] Received:", payload.model, payload.event, payload.data?.number);
 
-    if (payload.model === "Order" && payload.event === "created") {
+    if (payload.model === "Order" && payload.event === "updated") {
       const orderNumber = payload.data?.number;
-      if (orderNumber) {
-        await markOrderPaid(orderNumber);
-        console.log(`Auto-paid order: ${orderNumber}`);
+      const status = payload.data?.status;
+
+      if (status === "Rendered" && orderNumber) {
+        // Find a successfully rendered file URL
+        const renderUrl = payload.data.printing_orders
+          ?.find((po) => po.render_status === "SUCCESS")
+          ?.render_url;
+
+        if (!renderUrl) {
+          console.log("[webhook] No successful render URL found for order:", orderNumber);
+          return NextResponse.json({ ok: true });
+        }
+
+        // Look up email from Redis
+        const entry = await redis.get<{ email: string; projectId: string }>(
+          `order:${orderNumber}`
+        );
+
+        if (!entry?.email) {
+          console.log("[webhook] No email found in Redis for order:", orderNumber);
+          return NextResponse.json({ ok: true });
+        }
+
+        // Send email with rendered file
+        await sendRenderedFile(entry.email, renderUrl, orderNumber);
+        console.log("[webhook] Email sent to:", entry.email, "for order:", orderNumber);
+
+        // Clean up Redis entry
+        await redis.del(`order:${orderNumber}`);
       }
     }
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("Webhook error:", error);
+    console.error("[webhook] Error:", error);
     return NextResponse.json({ error: "Webhook failed" }, { status: 500 });
   }
 }

@@ -65,12 +65,12 @@ function EditorContent() {
   const initializedRef = useRef(false);
   const pendingProjectIdRef = useRef<string | null>(null);
 
-  const autoPayOrder = useCallback(async (projectId: string) => {
+  const autoPayOrder = useCallback(async (projectId: string, email: string) => {
     try {
       const res = await fetch("/api/orders/auto-pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId }),
+        body: JSON.stringify({ projectId, email }),
       });
       if (!res.ok) {
         console.error("[Fotobudka] Failed to auto-pay order:", await res.text());
@@ -204,9 +204,7 @@ function EditorContent() {
     console.log("[Fotobudka] Email submitted:", email);
     setOverlayStep("processing");
 
-    // TODO: store email with order
-
-    const success = await autoPayOrder(pendingProjectIdRef.current);
+    const success = await autoPayOrder(pendingProjectIdRef.current, email);
 
     if (success) {
       setOverlayStep("qr");
