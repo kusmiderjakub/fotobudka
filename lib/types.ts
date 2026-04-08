@@ -21,8 +21,8 @@ export interface Product {
 
 export interface ProductImage {
   id: number;
-  image: string;
-  position: number;
+  alt: Record<string, string>;
+  thumbs: Record<string, string>;
 }
 
 export interface EditorModule {

@@ -25,7 +25,8 @@ export async function GET() {
         try {
           const images = await getProductImages(id);
           if (images.length > 0) {
-            image = images[0].image;
+            const thumbs = images[0].thumbs;
+            image = thumbs["900x900"] || thumbs["300x300"] || Object.values(thumbs)[0] || null;
           }
         } catch {
           // skip image fetch errors
