@@ -78,6 +78,10 @@ export async function getProducts(familyId: number): Promise<Product[]> {
   return data.results;
 }
 
+export async function getProduct(productId: number): Promise<Product> {
+  return apiFetch<Product>(`/api/ec/v4/products/${productId}/`);
+}
+
 export async function getProductImages(
   productId: number
 ): Promise<ProductImage[]> {

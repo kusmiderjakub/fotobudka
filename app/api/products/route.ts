@@ -1,40 +1,29 @@
 import { NextResponse } from "next/server";
 import {
-  getProducts,
+  getProduct,
   getProductImages,
   getEditorModules,
 } from "@/lib/printbox";
 
 export const dynamic = "force-dynamic";
 
-const FAMILY_ID = 323; // Cards family
+// Define the exact product IDs to display (in order)
+const PRODUCT_IDS = [7361];
 
 export async function GET() {
   try {
-    const [products, editorModules] = await Promise.all([
-      getProducts(FAMILY_ID),
-      getEditorModules(FAMILY_ID),
-    ]);
+    const products = await Promise.all(
+      PRODUCT_IDS.map(async (id) => {
+        const product = await getProduct(id);
+        const editorModules = await getEditorModules(product.family_id);
+        const defaultEditor =
+          editorModules.find((m) => m.is_default && m.is_enabled) ??
+          editorModules.find((m) => m.is_enabled) ??
+          null;
 
-    console.log(
-      "[Products API] products:",
-      products.map((p) => ({ id: p.id, name: p.name, friendly_url: p.friendly_url, store_ids: p.store_ids }))
-    );
-    console.log(
-      "[Products API] editorModules:",
-      editorModules.map((m) => ({ id: m.id, name: m.name, is_default: m.is_default, is_enabled: m.is_enabled }))
-    );
-
-    const defaultEditor =
-      editorModules.find((m) => m.is_default && m.is_enabled) ??
-      editorModules.find((m) => m.is_enabled) ??
-      null;
-
-    const productsWithImages = await Promise.all(
-      products.map(async (product) => {
         let image: string | null = null;
         try {
-          const images = await getProductImages(product.id);
+          const images = await getProductImages(id);
           if (images.length > 0) {
             image = images[0].image;
           }
@@ -50,7 +39,7 @@ export async function GET() {
       })
     );
 
-    return NextResponse.json(productsWithImages);
+    return NextResponse.json(products);
   } catch (error) {
     console.error("Failed to fetch products:", error);
     return NextResponse.json(
