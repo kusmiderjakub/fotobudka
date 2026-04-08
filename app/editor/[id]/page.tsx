@@ -8,9 +8,9 @@ import Script from "next/script";
 const PRINTBOX_INIT_SCRIPT =
   "https://js-cdn.getprintbox.com/init/masterpiece_ai/init.min.js";
 
-const FAMILY_ID = "323";
 const STORE_NAME = "default_store";
 const CURRENCY = "EUR";
+const DEFAULT_FAMILY_ID = "323";
 
 const serifFont =
   "ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif";
@@ -53,6 +53,7 @@ function EditorContent() {
   const router = useRouter();
   const editorModuleId = params.id as string;
   const productId = searchParams.get("productId");
+  const familyId = searchParams.get("familyId") || DEFAULT_FAMILY_ID;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -163,7 +164,7 @@ function EditorContent() {
     };
 
     const config: Record<string, unknown> = {
-      productFamilyId: FAMILY_ID,
+      productFamilyId: familyId,
       moduleId: editorModuleId,
       storeName: STORE_NAME,
       currency: CURRENCY,
@@ -180,10 +181,6 @@ function EditorContent() {
 
     if (productId) {
       config.productId = productId;
-      config.attributeValues = {
-        size: "oneSided10x15",
-        theme: "CRSTD0024-Love_in_Focus",
-      };
     }
 
     console.log("[Fotobudka] setEditorConfig:", config);
@@ -194,7 +191,7 @@ function EditorContent() {
       setLoading(false);
     }, 15000);
     return () => clearTimeout(timeout);
-  }, [scriptReady, sessionKey, editorModuleId, productId, autoPayOrder]);
+  }, [scriptReady, sessionKey, editorModuleId, productId, familyId, autoPayOrder]);
 
   // User submits email → trigger payment → show completion → redirect
   const handleEmailSubmit = async (e: React.FormEvent) => {
