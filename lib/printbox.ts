@@ -64,6 +64,11 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+// Raw fetch — returns untyped JSON for debugging
+export async function apiFetchRaw(path: string): Promise<unknown> {
+  return apiFetch<unknown>(path);
+}
+
 export async function getProductFamilies(): Promise<ProductFamily[]> {
   const data = await apiFetch<PaginatedResponse<ProductFamily>>(
     "/api/ec/v4/product-families/"

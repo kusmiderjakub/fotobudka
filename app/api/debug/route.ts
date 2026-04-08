@@ -1,38 +1,17 @@
 import { NextResponse } from "next/server";
-import {
-  getProducts,
-  getProductImages,
-  getEditorModules,
-} from "@/lib/printbox";
+import { apiFetchRaw } from "@/lib/printbox";
 
 export const dynamic = "force-dynamic";
 
-const FAMILY_ID = 323;
-
 export async function GET() {
   try {
-    const [products, editorModules] = await Promise.all([
-      getProducts(FAMILY_ID),
-      getEditorModules(FAMILY_ID),
-    ]);
-
-    const productsWithImages = await Promise.all(
-      products.map(async (product) => {
-        let images: { id: number; image: string; position: number }[] = [];
-        try {
-          images = await getProductImages(product.id);
-        } catch {
-          // skip
-        }
-        return { ...product, images };
-      })
-    );
+    // Fetch raw product 7361 to see ALL fields the API returns
+    const rawProduct = await apiFetchRaw("/api/ec/v4/products/7361/");
+    const rawProductImages = await apiFetchRaw("/api/ec/v4/products/7361/images/");
 
     return NextResponse.json({
-      familyId: FAMILY_ID,
-      productCount: products.length,
-      products: productsWithImages,
-      editorModules,
+      rawProduct,
+      rawProductImages,
     }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
