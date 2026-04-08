@@ -8,7 +8,7 @@ import {
 export const dynamic = "force-dynamic";
 
 // Define the exact product IDs to display (in order)
-const PRODUCT_IDS = [7361];
+const PRODUCT_IDS = [7361, 7433, 7434, 7435, 7436, 7437, 7438, 7439, 7440, 7441, 7442, 7443];
 
 export async function GET() {
   try {
