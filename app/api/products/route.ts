@@ -5,12 +5,15 @@ import {
   getEditorModules,
 } from "@/lib/printbox";
 
+export const dynamic = "force-dynamic";
+
 const FAMILY_ID = 323; // Cards family
+const STORE_NAME = "default_store";
 
 export async function GET() {
   try {
     const [products, editorModules] = await Promise.all([
-      getProducts(FAMILY_ID),
+      getProducts(FAMILY_ID, STORE_NAME),
       getEditorModules(FAMILY_ID),
     ]);
 

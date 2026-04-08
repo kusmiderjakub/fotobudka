@@ -23,7 +23,7 @@ export default function Home() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await fetch("/api/products");
+        const res = await fetch("/api/products", { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to fetch products");
         const products: ProductData[] = await res.json();
         if (products.length > 0) {

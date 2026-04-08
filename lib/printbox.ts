@@ -47,6 +47,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const token = await getToken();
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
+    cache: "no-store",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -70,9 +71,11 @@ export async function getProductFamilies(): Promise<ProductFamily[]> {
   return data.results;
 }
 
-export async function getProducts(familyId: number): Promise<Product[]> {
+export async function getProducts(familyId: number, storeName?: string): Promise<Product[]> {
+  const params = new URLSearchParams({ family_id: String(familyId) });
+  if (storeName) params.set("store_name", storeName);
   const data = await apiFetch<PaginatedResponse<Product>>(
-    `/api/ec/v4/products/?family_id=${familyId}`
+    `/api/ec/v4/products/?${params}`
   );
   return data.results;
 }
