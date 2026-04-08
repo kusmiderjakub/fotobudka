@@ -71,11 +71,9 @@ export async function getProductFamilies(): Promise<ProductFamily[]> {
   return data.results;
 }
 
-export async function getProducts(familyId: number, storeName?: string): Promise<Product[]> {
-  const params = new URLSearchParams({ family_id: String(familyId) });
-  if (storeName) params.set("store_name", storeName);
+export async function getProducts(familyId: number): Promise<Product[]> {
   const data = await apiFetch<PaginatedResponse<Product>>(
-    `/api/ec/v4/products/?${params}`
+    `/api/ec/v4/products/?family_id=${familyId}`
   );
   return data.results;
 }

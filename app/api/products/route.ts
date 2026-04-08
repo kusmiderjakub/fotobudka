@@ -8,14 +8,22 @@ import {
 export const dynamic = "force-dynamic";
 
 const FAMILY_ID = 323; // Cards family
-const STORE_NAME = "default_store";
 
 export async function GET() {
   try {
     const [products, editorModules] = await Promise.all([
-      getProducts(FAMILY_ID, STORE_NAME),
+      getProducts(FAMILY_ID),
       getEditorModules(FAMILY_ID),
     ]);
+
+    console.log(
+      "[Products API] products:",
+      products.map((p) => ({ id: p.id, name: p.name, friendly_url: p.friendly_url, store_ids: p.store_ids }))
+    );
+    console.log(
+      "[Products API] editorModules:",
+      editorModules.map((m) => ({ id: m.id, name: m.name, is_default: m.is_default, is_enabled: m.is_enabled }))
+    );
 
     const defaultEditor =
       editorModules.find((m) => m.is_default && m.is_enabled) ??
