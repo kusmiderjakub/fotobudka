@@ -87,7 +87,7 @@ export default function Home() {
       {/* Main content */}
       <div
         style={{
-          maxWidth: 540,
+          maxWidth: 960,
           width: "100%",
           display: "flex",
           flexDirection: "column",
@@ -170,107 +170,100 @@ export default function Home() {
           </div>
         )}
 
-        {/* Product cards */}
-        {!loading &&
-          products.map((product) => (
-            <button
-              key={product.id}
-              onClick={() => handleStart(product)}
-              style={{
-                all: "unset",
-                cursor: "pointer",
-                width: "100%",
-                borderRadius: 20,
-                overflow: "hidden",
-                backgroundColor: "#fff",
-                boxShadow:
-                  "0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.08)",
-                transition: "transform 200ms ease, box-shadow 200ms ease",
-                display: "flex",
-                flexDirection: "column",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow =
-                  "0 2px 6px rgba(0,0,0,0.06), 0 16px 48px rgba(0,0,0,0.12)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow =
-                  "0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.08)";
-              }}
-            >
-              {product.image && (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={product.image}
-                  alt={product.display_name?.en || product.name}
-                  style={{
-                    width: "100%",
-                    aspectRatio: "4 / 3",
-                    objectFit: "cover",
-                    display: "block",
-                  }}
-                />
-              )}
-              <div
+        {/* Product grid — 3 columns */}
+        {!loading && products.length > 0 && (
+          <div
+            style={{
+              width: "100%",
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 20,
+            }}
+          >
+            {products.map((product) => (
+              <button
+                key={product.id}
+                onClick={() => handleStart(product)}
                 style={{
-                  padding: "20px 24px 22px",
+                  all: "unset",
+                  cursor: "pointer",
+                  borderRadius: 14,
+                  overflow: "hidden",
+                  backgroundColor: "#fff",
+                  boxShadow:
+                    "0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.07)",
+                  transition: "transform 200ms ease, box-shadow 200ms ease",
                   display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
+                  flexDirection: "column",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-3px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 2px 6px rgba(0,0,0,0.06), 0 12px 36px rgba(0,0,0,0.12)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.07)";
                 }}
               >
-                <div>
+                <div
+                  style={{
+                    width: "100%",
+                    aspectRatio: "1 / 1",
+                    backgroundColor: "#f5f3ed",
+                    overflow: "hidden",
+                  }}
+                >
+                  {product.image ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={product.image}
+                      alt={product.display_name?.en || product.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        display: "block",
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#c4b8a6",
+                        fontSize: 13,
+                        fontFamily: serifFont,
+                      }}
+                    >
+                      No image
+                    </div>
+                  )}
+                </div>
+                <div style={{ padding: "12px 14px 14px" }}>
                   <div
                     style={{
-                      fontSize: 20,
+                      fontSize: 14,
                       fontWeight: 500,
                       color: "#3d3929",
                       fontFamily: serifFont,
+                      lineHeight: 1.3,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {product.display_name?.en || product.name}
                   </div>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      color: "#a89a85",
-                      marginTop: 4,
-                      fontFamily: serifFont,
-                    }}
-                  >
-                    Tap to start designing
-                  </div>
                 </div>
-                <div
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 12,
-                    backgroundColor: "#da7756",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#fff"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Bottom branding */}
