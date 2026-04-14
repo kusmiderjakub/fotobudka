@@ -74,7 +74,8 @@ function EditorContent() {
         body: JSON.stringify({ projectId, email }),
       });
       if (!res.ok) {
-        console.error("[Fotobudka] Failed to auto-pay order:", await res.text());
+        const errBody = await res.text();
+        console.error("[Fotobudka] Failed to auto-pay order:", res.status, errBody);
         return false;
       }
       const data = await res.json();
