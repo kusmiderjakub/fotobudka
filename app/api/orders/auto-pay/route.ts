@@ -3,7 +3,16 @@ import { createOrder, markOrderPaid, getProjectCustomerId } from "@/lib/printbox
 import { Redis } from "@upstash/redis";
 import { randomUUID } from "crypto";
 
-const redis = Redis.fromEnv();
+function getRedis(): Redis | null {
+  try {
+    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+      return null;
+    }
+    return Redis.fromEnv();
+  } catch {
+    return null;
+  }
+}
 
 export async function POST(request: NextRequest) {
   let step = "parsing request";
@@ -42,16 +51,23 @@ export async function POST(request: NextRequest) {
     const paidOrder = await markOrderPaid(order.number);
     console.log("[auto-pay] Order paid, status:", paidOrder.status);
 
-    // Step 4: Store email in Redis so the webhook can look it up later
+    // Step 4: Store email in Redis so the webhook can look it up later (non-blocking)
     if (email) {
-      step = "storing email in Redis";
-      console.log("[auto-pay] Step 4: Storing email in Redis");
-      await redis.set(
-        `order:${paidOrder.number}`,
-        { email, projectId, createdAt: new Date().toISOString() },
-        { ex: 86400 } // 24h TTL
-      );
-      console.log("[auto-pay] Stored email for order:", paidOrder.number);
+      const redis = getRedis();
+      if (redis) {
+        try {
+          await redis.set(
+            `order:${paidOrder.number}`,
+            { email, projectId, createdAt: new Date().toISOString() },
+            { ex: 86400 } // 24h TTL
+          );
+          console.log("[auto-pay] Stored email for order:", paidOrder.number);
+        } catch (redisErr) {
+          console.warn("[auto-pay] Redis unavailable, email not stored:", redisErr);
+        }
+      } else {
+        console.warn("[auto-pay] Redis not configured, skipping email storage");
+      }
     }
 
     return NextResponse.json({

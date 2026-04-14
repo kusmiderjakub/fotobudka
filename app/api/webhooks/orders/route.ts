@@ -2,7 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
 import { sendRenderedFile } from "@/lib/email";
 
-const redis = Redis.fromEnv();
+function getRedis(): Redis | null {
+  try {
+    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+      return null;
+    }
+    return Redis.fromEnv();
+  } catch {
+    return null;
+  }
+}
 
 interface PrintingOrder {
   render_status: "SUCCESS" | "NEW" | "FAILURE";
@@ -44,6 +53,12 @@ export async function POST(request: NextRequest) {
         }
 
         // Look up email from Redis
+        const redis = getRedis();
+        if (!redis) {
+          console.warn("[webhook] Redis not configured, cannot look up email for order:", orderNumber);
+          return NextResponse.json({ ok: true });
+        }
+
         const entry = await redis.get<{ email: string; projectId: string }>(
           `order:${orderNumber}`
         );
