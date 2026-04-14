@@ -156,6 +156,7 @@ export interface PrintboxProject {
   thumbnail_url: string;
   name: string;
   status: string;
+  [key: string]: unknown; // capture all fields from API
 }
 
 export async function getProject(projectUuid: string): Promise<PrintboxProject> {
