@@ -76,27 +76,37 @@ export default function SharePageClient({
     const shareText = "I just designed this postcard with Masterpiece AI at FESPA 2026! 🎨\n\n#FESPA2026 #MasterpieceAI #Printbox";
 
     // Try sharing with the image file attached
-    const imageUrl = renderImageUrl || thumbnailUrl;
-    if (navigator.share && imageUrl) {
-      try {
-        const res = await fetch(imageUrl);
-        const blob = await res.blob();
-        const file = new File([blob], "my-fespa-postcard.png", { type: blob.type || "image/png" });
-
-        if (navigator.canShare?.({ files: [file] })) {
-          await navigator.share({
-            text: shareText,
-            files: [file],
-          });
-          return;
-        }
-      } catch {
-        // User cancelled or file share not supported — try text-only share
-      }
-    }
-
-    // Fallback: share text + URL (no image)
     if (navigator.share) {
+      try {
+        // Use already-loaded render blob, or fetch from our API (avoids CORS)
+        let blob: Blob | null = null;
+        if (renderImageUrl) {
+          const res = await fetch(renderImageUrl);
+          blob = await res.blob();
+        } else {
+          // Fetch from our own proxy endpoint (no CORS issues)
+          const res = await fetch(`/api/projects/${projectId}/render-image`);
+          if (res.ok && res.headers.get("content-type")?.startsWith("image/")) {
+            blob = await res.blob();
+          }
+        }
+
+        if (blob) {
+          const file = new File([blob], "my-fespa-postcard.png", { type: blob.type || "image/png" });
+          if (navigator.canShare?.({ files: [file] })) {
+            await navigator.share({
+              text: shareText,
+              files: [file],
+            });
+            return;
+          }
+        }
+      } catch (err) {
+        // Only fall through if it's not a user cancellation
+        if (err instanceof DOMException && err.name === "AbortError") return;
+      }
+
+      // Fallback: share text + URL (no image)
       try {
         await navigator.share({
           title: "My FESPA 2026 Postcard",
@@ -111,7 +121,7 @@ export default function SharePageClient({
 
     // Desktop fallback: open LinkedIn share page
     window.location.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
-  }, [shareUrl, renderImageUrl, thumbnailUrl]);
+  }, [shareUrl, renderImageUrl, projectId]);
 
   const handleDownload = useCallback(async () => {
     const url = renderImageUrl || thumbnailUrl;
