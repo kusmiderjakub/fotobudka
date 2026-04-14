@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendRenderedFile } from "@/lib/email";
+import { getOrderProjects } from "@/lib/printbox";
 import {
   isConfigured as isMailchimpConfigured,
   getEmailByOrderNumber,
   removeOrderTag,
 } from "@/lib/mailchimp";
-
-interface PrintingOrder {
-  render_status: "SUCCESS" | "NEW" | "FAILURE";
-  render_url: string | null;
-  render_time: string | null;
-}
 
 interface WebhookPayload {
   hook_id: number;
@@ -19,7 +14,6 @@ interface WebhookPayload {
   data: {
     number: string;
     status: string;
-    printing_orders?: PrintingOrder[];
     [key: string]: unknown;
   };
 }
@@ -28,22 +22,28 @@ interface WebhookPayload {
 export async function POST(request: NextRequest) {
   try {
     const payload: WebhookPayload = await request.json();
-    console.log("[webhook] Received:", payload.model, payload.event, payload.data?.number);
+    console.log("[webhook] Received:", payload.model, payload.event, payload.data?.status, payload.data?.number);
+    console.log("[webhook] Full payload:", JSON.stringify(payload));
 
     if (payload.model === "Order" && payload.event === "updated") {
       const orderNumber = payload.data?.number;
       const status = payload.data?.status;
 
       if (status === "Rendered" && orderNumber) {
-        // Find a successfully rendered file URL
-        const renderUrl = payload.data.printing_orders
-          ?.find((po) => po.render_status === "SUCCESS")
-          ?.render_url;
+        // Fetch projects for this order to get the render URL
+        const projects = await getOrderProjects(orderNumber);
+        console.log("[webhook] Found", projects.length, "projects for order:", orderNumber);
 
-        if (!renderUrl) {
-          console.log("[webhook] No successful render URL found for order:", orderNumber);
+        const renderedProject = projects.find(
+          (p) => p.render_status === "SUCCESS" && p.render_url
+        );
+
+        if (!renderedProject?.render_url) {
+          console.log("[webhook] No rendered project found for order:", orderNumber);
           return NextResponse.json({ ok: true });
         }
+
+        console.log("[webhook] Render URL:", renderedProject.render_url);
 
         // Look up email from Mailchimp
         if (!isMailchimpConfigured()) {
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Send email with rendered file
-        await sendRenderedFile(email, renderUrl, orderNumber);
+        await sendRenderedFile(email, renderedProject.render_url, orderNumber);
         console.log("[webhook] Email sent to:", email, "for order:", orderNumber);
 
         // Remove the order-specific tag (keep subscriber in audience)

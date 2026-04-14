@@ -29,7 +29,10 @@ async function mailchimpFetch<T = unknown>(
     throw new Error(`Mailchimp API error ${res.status}: ${text}`);
   }
 
-  return res.json() as Promise<T>;
+  // Some endpoints (e.g. tags) return 204 No Content with empty body
+  const text = await res.text();
+  if (!text) return {} as T;
+  return JSON.parse(text) as T;
 }
 
 export function isConfigured(): boolean {

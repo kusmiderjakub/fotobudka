@@ -156,11 +156,21 @@ export interface PrintboxProject {
   thumbnail_url: string;
   name: string;
   status: string;
-  [key: string]: unknown; // capture all fields from API
+  render_status: string | null;
+  render_url: string | null;
+  order_status: string | null;
+  [key: string]: unknown;
 }
 
 export async function getProject(projectUuid: string): Promise<PrintboxProject> {
   return apiFetch<PrintboxProject>(`/api/ec/v4/projects/${projectUuid}/`);
+}
+
+export async function getOrderProjects(orderNumber: string): Promise<PrintboxProject[]> {
+  const data = await apiFetch<PaginatedResponse<PrintboxProject>>(
+    `/api/ec/v4/projects/?order_number=${orderNumber}`
+  );
+  return data.results;
 }
 
 export async function getOrders(params?: {
