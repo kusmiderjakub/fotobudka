@@ -65,7 +65,7 @@ export async function addSubscriberWithOrder(
     method: "POST",
     body: JSON.stringify({
       tags: [
-        { name: "fotobudka", status: "active" },
+        { name: "fespa", status: "active" },
         { name: `order:${orderNumber}`, status: "active" },
       ],
     }),
