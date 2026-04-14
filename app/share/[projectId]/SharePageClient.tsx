@@ -20,10 +20,8 @@ export default function SharePageClient({
       : "";
 
   const handleLinkedIn = useCallback(() => {
-    window.open(
-      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
-      "_blank"
-    );
+    // Use location.href so the OS can intercept and open the LinkedIn app
+    window.location.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
   }, [shareUrl]);
 
   const handleDownload = useCallback(async () => {
