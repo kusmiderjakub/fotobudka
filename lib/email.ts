@@ -2,17 +2,85 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const FROM_ADDRESS = process.env.EMAIL_FROM || "Fotobudka <onboarding@resend.dev>";
+
 /**
- * Download the rendered file and return it as a Buffer with its content type.
+ * Minimal tar parser — extracts the first file from a tar archive.
  */
-async function downloadFile(url: string): Promise<{ buffer: Buffer; contentType: string; filename: string }> {
+function extractFirstFileFromTar(buffer: Buffer): {
+  filename: string;
+  data: Buffer;
+} | null {
+  let offset = 0;
+
+  while (offset + 512 <= buffer.length) {
+    const header = buffer.subarray(offset, offset + 512);
+    if (header.every((b) => b === 0)) break;
+
+    const filenameEnd = header.indexOf(0);
+    const filename = header
+      .subarray(0, filenameEnd > 0 && filenameEnd < 100 ? filenameEnd : 100)
+      .toString("utf-8")
+      .trim();
+
+    const sizeStr = header.subarray(124, 136).toString("utf-8").trim();
+    const size = parseInt(sizeStr, 8) || 0;
+
+    const typeFlag = header[156];
+    const isFile = typeFlag === 0 || typeFlag === 48;
+
+    offset += 512;
+
+    if (isFile && size > 0) {
+      const data = buffer.subarray(offset, offset + size);
+      return { filename, data };
+    }
+
+    offset += Math.ceil(size / 512) * 512;
+  }
+
+  return null;
+}
+
+/**
+ * Download the rendered file. If it's a tar archive, extract the first file.
+ */
+async function downloadRender(url: string): Promise<{
+  buffer: Buffer;
+  contentType: string;
+  filename: string;
+}> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to download render: ${res.status}`);
 
-  const contentType = res.headers.get("content-type") || "application/pdf";
+  const contentType = res.headers.get("content-type") || "";
   const arrayBuffer = await res.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
+  // If it's a tar archive, extract the first file
+  if (
+    url.endsWith(".tar") ||
+    contentType.includes("tar") ||
+    contentType.includes("octet-stream")
+  ) {
+    const file = extractFirstFileFromTar(buffer);
+    if (file) {
+      const lower = file.filename.toLowerCase();
+      let extractedType = "application/octet-stream";
+      if (lower.endsWith(".png")) extractedType = "image/png";
+      else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg"))
+        extractedType = "image/jpeg";
+      else if (lower.endsWith(".pdf")) extractedType = "application/pdf";
+
+      return {
+        buffer: Buffer.from(file.data),
+        contentType: extractedType,
+        filename: file.filename,
+      };
+    }
+  }
+
+  // Not a tar — return as-is
   const isPdf = contentType.includes("pdf");
   const filename = isPdf ? "postcard.pdf" : "postcard.png";
 
@@ -24,12 +92,23 @@ export async function sendRenderedFile(
   renderUrl: string,
   orderNumber: string
 ) {
-  // Download the rendered file to attach it
-  const file = await downloadFile(renderUrl);
+  // Download and extract the rendered file
+  const file = await downloadRender(renderUrl);
   const isImage = file.contentType.startsWith("image/");
 
+  console.log(
+    "[email] Sending to:",
+    email,
+    "file:",
+    file.filename,
+    "type:",
+    file.contentType,
+    "size:",
+    file.buffer.length
+  );
+
   const { data, error } = await resend.emails.send({
-    from: "Fotobudka <onboarding@resend.dev>",
+    from: FROM_ADDRESS,
     to: email,
     subject: "Your postcard is ready!",
     attachments: [
@@ -53,33 +132,25 @@ export async function sendRenderedFile(
           </p>
         </div>
 
-        <!-- Postcard preview -->
+        <!-- Postcard preview (only for images) -->
         ${isImage ? `
         <div style="padding: 0 32px;">
           <div style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-            <img src="${renderUrl}" alt="Your postcard" style="width: 100%; display: block;" />
+            <img src="cid:postcard" alt="Your postcard" style="width: 100%; display: block;" />
           </div>
         </div>
         ` : `
         <div style="padding: 0 32px;">
           <div style="background: #fff; border-radius: 16px; padding: 32px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
             <p style="font-size: 16px; color: #8d7e6a; margin: 0;">
-              Your postcard is attached as a PDF file.
+              Your postcard is attached to this email.
             </p>
           </div>
         </div>
         `}
 
-        <!-- Download button -->
-        <div style="padding: 28px 32px; text-align: center;">
-          <a href="${renderUrl}"
-             style="display: inline-block; padding: 14px 36px; background-color: #da7756; color: #fff; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: 600;">
-            Download postcard
-          </a>
-        </div>
-
         <!-- Divider -->
-        <div style="padding: 0 32px;">
+        <div style="padding: 32px 32px 0;">
           <hr style="border: none; border-top: 1px solid #ddd5c8; margin: 0;" />
         </div>
 

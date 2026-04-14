@@ -72,7 +72,21 @@ export default function SharePageClient({
 
   const displayImageUrl = renderImageUrl || thumbnailUrl;
 
-  const handleLinkedIn = useCallback(() => {
+  const handleShare = useCallback(async () => {
+    // Use native share sheet if available (opens LinkedIn app picker on mobile)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "I designed this postcard at FESPA!",
+          text: "Created with Masterpiece AI by Printbox",
+          url: shareUrl,
+        });
+        return;
+      } catch {
+        // User cancelled or share failed — fall through to LinkedIn URL
+      }
+    }
+    // Fallback: open LinkedIn share page directly
     window.location.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
   }, [shareUrl]);
 
@@ -256,9 +270,9 @@ export default function SharePageClient({
           Created with Masterpiece AI by Printbox
         </p>
 
-        {/* LinkedIn share button */}
+        {/* Share button — uses native share sheet on mobile, LinkedIn fallback on desktop */}
         <button
-          onClick={handleLinkedIn}
+          onClick={handleShare}
           style={{
             display: "flex",
             alignItems: "center",
@@ -277,10 +291,14 @@ export default function SharePageClient({
             cursor: "pointer",
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
-            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
           </svg>
-          Share on LinkedIn
+          Share on social media
         </button>
 
         {/* Download button */}
