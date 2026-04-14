@@ -1,18 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createOrder, markOrderPaid, getProjectCustomerId } from "@/lib/printbox";
-import { Redis } from "@upstash/redis";
+import { addSubscriberWithOrder, isConfigured as isMailchimpConfigured } from "@/lib/mailchimp";
 import { randomUUID } from "crypto";
-
-function getRedis(): Redis | null {
-  try {
-    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-      return null;
-    }
-    return Redis.fromEnv();
-  } catch {
-    return null;
-  }
-}
 
 export async function POST(request: NextRequest) {
   let step = "parsing request";
@@ -51,22 +40,17 @@ export async function POST(request: NextRequest) {
     const paidOrder = await markOrderPaid(order.number);
     console.log("[auto-pay] Order paid, status:", paidOrder.status);
 
-    // Step 4: Store email in Redis so the webhook can look it up later (non-blocking)
+    // Step 4: Store email in Mailchimp audience with order tag (non-blocking)
     if (email) {
-      const redis = getRedis();
-      if (redis) {
+      if (isMailchimpConfigured()) {
         try {
-          await redis.set(
-            `order:${paidOrder.number}`,
-            { email, projectId, createdAt: new Date().toISOString() },
-            { ex: 86400 } // 24h TTL
-          );
-          console.log("[auto-pay] Stored email for order:", paidOrder.number);
-        } catch (redisErr) {
-          console.warn("[auto-pay] Redis unavailable, email not stored:", redisErr);
+          await addSubscriberWithOrder(email, paidOrder.number, projectId);
+          console.log("[auto-pay] Email stored in Mailchimp for order:", paidOrder.number);
+        } catch (mcErr) {
+          console.warn("[auto-pay] Mailchimp error (non-blocking):", mcErr);
         }
       } else {
-        console.warn("[auto-pay] Redis not configured, skipping email storage");
+        console.warn("[auto-pay] Mailchimp not configured, skipping email storage");
       }
     }
 

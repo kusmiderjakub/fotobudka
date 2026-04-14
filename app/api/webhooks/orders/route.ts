@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Redis } from "@upstash/redis";
 import { sendRenderedFile } from "@/lib/email";
-
-function getRedis(): Redis | null {
-  try {
-    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-      return null;
-    }
-    return Redis.fromEnv();
-  } catch {
-    return null;
-  }
-}
+import {
+  isConfigured as isMailchimpConfigured,
+  getEmailByOrderNumber,
+  removeOrderTag,
+} from "@/lib/mailchimp";
 
 interface PrintingOrder {
   render_status: "SUCCESS" | "NEW" | "FAILURE";
@@ -52,28 +45,25 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ ok: true });
         }
 
-        // Look up email from Redis
-        const redis = getRedis();
-        if (!redis) {
-          console.warn("[webhook] Redis not configured, cannot look up email for order:", orderNumber);
+        // Look up email from Mailchimp
+        if (!isMailchimpConfigured()) {
+          console.warn("[webhook] Mailchimp not configured, cannot look up email for order:", orderNumber);
           return NextResponse.json({ ok: true });
         }
 
-        const entry = await redis.get<{ email: string; projectId: string }>(
-          `order:${orderNumber}`
-        );
+        const email = await getEmailByOrderNumber(orderNumber);
 
-        if (!entry?.email) {
-          console.log("[webhook] No email found in Redis for order:", orderNumber);
+        if (!email) {
+          console.log("[webhook] No email found in Mailchimp for order:", orderNumber);
           return NextResponse.json({ ok: true });
         }
 
         // Send email with rendered file
-        await sendRenderedFile(entry.email, renderUrl, orderNumber);
-        console.log("[webhook] Email sent to:", entry.email, "for order:", orderNumber);
+        await sendRenderedFile(email, renderUrl, orderNumber);
+        console.log("[webhook] Email sent to:", email, "for order:", orderNumber);
 
-        // Clean up Redis entry
-        await redis.del(`order:${orderNumber}`);
+        // Remove the order-specific tag (keep subscriber in audience)
+        await removeOrderTag(email, orderNumber);
       }
     }
 
