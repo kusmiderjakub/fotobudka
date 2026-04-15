@@ -173,6 +173,10 @@ export async function getOrderProjects(orderNumber: string): Promise<PrintboxPro
   return data.results;
 }
 
+export async function getOrder(orderNumber: string): Promise<Order> {
+  return apiFetch<Order>(`/api/ec/v4/orders/${orderNumber}/`);
+}
+
 export async function getOrders(params?: {
   customer_id?: number;
   number?: string;

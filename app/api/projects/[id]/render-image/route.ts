@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProject } from "@/lib/printbox";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Minimal tar parser — extracts the first file from a tar archive.
  * Tar format: 512-byte header blocks followed by file data padded to 512 bytes.

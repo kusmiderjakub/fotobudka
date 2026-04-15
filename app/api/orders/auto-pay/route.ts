@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const order = await createOrder({
       customer_id: customerId,
       number: orderNumber,
-      reference: `KIOSK-${Date.now()}`,
+      reference: email || `KIOSK-${Date.now()}`,
       currency: "EUR",
       projects: [{ uuid: projectId, quantity: 1 }],
     });

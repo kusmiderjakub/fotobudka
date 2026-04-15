@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import { getProject } from "@/lib/printbox";
 import SharePageClient from "./SharePageClient";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: Promise<{ projectId: string }>;
   searchParams: Promise<{ img?: string }>;

@@ -1,8 +1,49 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY is not set");
+    }
+    _resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return _resend;
+}
 
-const FROM_ADDRESS = process.env.EMAIL_FROM || "Fotobudka <onboarding@resend.dev>";
+let _cachedFromAddress: string | null = null;
+
+/**
+ * Get the FROM address. Tries in order:
+ * 1. EMAIL_FROM env var (if set)
+ * 2. Auto-detect from first verified domain in Resend account
+ * 3. Default fallback
+ */
+async function getFromAddress(): Promise<string> {
+  if (process.env.EMAIL_FROM) return process.env.EMAIL_FROM;
+  if (_cachedFromAddress) return _cachedFromAddress;
+
+  try {
+    const res = await fetch("https://api.resend.com/domains", {
+      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
+    });
+    if (res.ok) {
+      const body = await res.json();
+      const verified = body.data?.find(
+        (d: { status: string; name: string }) => d.status === "verified"
+      );
+      if (verified) {
+        _cachedFromAddress = `Masterpiece AI <noreply@${verified.name}>`;
+        console.log("[email] Auto-detected FROM address:", _cachedFromAddress);
+        return _cachedFromAddress;
+      }
+    }
+  } catch (err) {
+    console.warn("[email] Failed to auto-detect domain:", err);
+  }
+
+  return "Fotobudka <onboarding@resend.dev>";
+}
 
 /**
  * Minimal tar parser — extracts the first file from a tar archive.
@@ -107,14 +148,18 @@ export async function sendRenderedFile(
     file.buffer.length
   );
 
-  const { data, error } = await resend.emails.send({
-    from: FROM_ADDRESS,
+  const fromAddress = await getFromAddress();
+  console.log("[email] Using FROM:", fromAddress);
+
+  const { data, error } = await getResend().emails.send({
+    from: fromAddress,
     to: email,
     subject: "Your postcard is ready!",
     attachments: [
       {
         filename: file.filename,
-        content: file.buffer,
+        content: file.buffer.toString("base64"),
+        contentId: "postcard",
       },
     ],
     html: `
