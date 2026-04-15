@@ -108,7 +108,7 @@ async function downloadRender(url: string): Promise<{
       console.log(`[email] Render download retry ${attempt}/4, waiting 3s...`);
       await new Promise((r) => setTimeout(r, 3000));
     }
-    res = await fetch(url);
+    res = await fetch(url, { cache: "no-store" });
     if (res.ok) break;
     console.warn(`[email] Render download attempt ${attempt + 1} failed: ${res.status}`);
   }

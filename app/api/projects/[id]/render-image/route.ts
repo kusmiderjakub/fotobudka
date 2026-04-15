@@ -91,7 +91,7 @@ export async function GET(
 
     // Download the tar archive (with Printbox auth)
     console.log("[render-image] Downloading render from:", project.render_url);
-    const tarRes = await fetch(project.render_url);
+    const tarRes = await fetch(project.render_url, { cache: "no-store" });
     if (!tarRes.ok) {
       console.error("[render-image] Failed to download tar:", tarRes.status, await tarRes.text().catch(() => ""));
       return NextResponse.json(
