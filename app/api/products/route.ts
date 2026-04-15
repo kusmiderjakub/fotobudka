@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import {
   getProduct,
   getProductImages,
@@ -10,8 +10,18 @@ export const dynamic = "force-dynamic";
 // Define the exact product IDs to display (in order)
 const PRODUCT_IDS = [7361, 7433, 7434, 7435, 7436, 7437, 7438, 7439, 7440, 7441, 7442, 7443];
 
-export async function GET() {
+// In-memory cache with manual bust via ?refresh=1
+let cachedProducts: { data: unknown[]; fetchedAt: number } | null = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+export async function GET(request: NextRequest) {
   try {
+    const refresh = request.nextUrl.searchParams.get("refresh") === "1";
+
+    if (!refresh && cachedProducts && Date.now() - cachedProducts.fetchedAt < CACHE_TTL) {
+      return NextResponse.json(cachedProducts.data);
+    }
+
     const products = await Promise.all(
       PRODUCT_IDS.map(async (id) => {
         const product = await getProduct(id);
@@ -40,9 +50,14 @@ export async function GET() {
       })
     );
 
+    cachedProducts = { data: products, fetchedAt: Date.now() };
+
     return NextResponse.json(products);
   } catch (error) {
     console.error("Failed to fetch products:", error);
+    if (cachedProducts) {
+      return NextResponse.json(cachedProducts.data);
+    }
     return NextResponse.json(
       { error: "Failed to fetch products" },
       { status: 500 }
