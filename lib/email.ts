@@ -1,5 +1,4 @@
 import { Resend } from "resend";
-import { fetchRenderUrl } from "./printbox";
 
 let _resend: Resend | null = null;
 function getResend(): Resend {
@@ -109,7 +108,7 @@ async function downloadRender(url: string): Promise<{
       console.log(`[email] Render download retry ${attempt}/4, waiting 3s...`);
       await new Promise((r) => setTimeout(r, 3000));
     }
-    res = await fetchRenderUrl(url);
+    res = await fetch(url);
     if (res.ok) break;
     console.warn(`[email] Render download attempt ${attempt + 1} failed: ${res.status}`);
   }
