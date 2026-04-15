@@ -28,39 +28,53 @@ export default function SharePageClient({
     let attempts = 0;
     const maxAttempts = 30; // ~2.5 minutes max polling
 
+    console.log("[share] Starting render poll for project:", projectId);
+
     async function poll() {
       while (!cancelled && attempts < maxAttempts) {
         try {
+          console.log("[share] Poll attempt", attempts + 1);
           const res = await fetch(`/api/projects/${projectId}/render-image`);
-          if (res.ok && res.headers.get("content-type")?.startsWith("image/")) {
+          const contentType = res.headers.get("content-type") || "";
+          console.log("[share] Response:", res.status, "content-type:", contentType);
+
+          if (res.ok && contentType.startsWith("image/")) {
             // Got an image back — create a blob URL
             const blob = await res.blob();
+            console.log("[share] Got high-res image, size:", blob.size);
             if (!cancelled) {
               setRenderImageUrl(URL.createObjectURL(blob));
               setLoading(false);
             }
             return;
           }
-          if (res.ok && res.headers.get("content-type")?.includes("pdf")) {
+          if (res.ok && contentType.includes("pdf")) {
             // PDF render — can't display inline, stop polling
+            console.log("[share] Got PDF render, stopping poll");
             setLoading(false);
             return;
           }
           // 202 = not ready yet, keep polling
           if (res.status === 202) {
+            const body = await res.json().catch(() => null);
+            console.log("[share] Not ready yet:", body?.status || "unknown");
             attempts++;
             await new Promise((r) => setTimeout(r, 5000));
             continue;
           }
-          // Other error — stop polling, show thumbnail
+          // Other error — log and stop polling
+          const errorBody = await res.text().catch(() => "");
+          console.warn("[share] Unexpected response, stopping poll:", res.status, errorBody);
           setLoading(false);
           return;
-        } catch {
+        } catch (err) {
+          console.error("[share] Poll error:", err);
           setLoading(false);
           return;
         }
       }
       // Max attempts reached
+      console.log("[share] Max poll attempts reached");
       if (!cancelled) setLoading(false);
     }
 

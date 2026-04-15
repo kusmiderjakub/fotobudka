@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getProject } from "@/lib/printbox";
+import { getProject, fetchRenderUrl } from "@/lib/printbox";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +65,7 @@ export async function GET(
 
   try {
     const project = await getProject(projectId);
+    console.log("[render-image] Project", projectId, "render_status:", project.render_status, "render_url:", project.render_url ? "present" : "missing");
 
     if (project.render_status !== "SUCCESS" || !project.render_url) {
       return NextResponse.json(
@@ -76,12 +77,13 @@ export async function GET(
       );
     }
 
-    // Download the tar archive
-    const tarRes = await fetch(project.render_url);
+    // Download the tar archive (with Printbox auth)
+    console.log("[render-image] Downloading render from:", project.render_url);
+    const tarRes = await fetchRenderUrl(project.render_url);
     if (!tarRes.ok) {
-      console.error("[render-image] Failed to download tar:", tarRes.status);
+      console.error("[render-image] Failed to download tar:", tarRes.status, await tarRes.text().catch(() => ""));
       return NextResponse.json(
-        { error: "Failed to download render" },
+        { error: "Failed to download render", status: tarRes.status },
         { status: 502 }
       );
     }

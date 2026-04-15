@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { fetchRenderUrl } from "./printbox";
 
 let _resend: Resend | null = null;
 function getResend(): Resend {
@@ -91,7 +92,7 @@ async function downloadRender(url: string): Promise<{
   contentType: string;
   filename: string;
 }> {
-  const res = await fetch(url);
+  const res = await fetchRenderUrl(url);
   if (!res.ok) throw new Error(`Failed to download render: ${res.status}`);
 
   const contentType = res.headers.get("content-type") || "";

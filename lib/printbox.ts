@@ -177,6 +177,21 @@ export async function getOrder(orderNumber: string): Promise<Order> {
   return apiFetch<Order>(`/api/ec/v4/orders/${orderNumber}/`);
 }
 
+/**
+ * Fetch a render URL with Printbox auth (render archives may require it).
+ */
+export async function fetchRenderUrl(url: string): Promise<Response> {
+  const token = await getToken();
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.ok) return res;
+
+  // If auth failed, try without auth (some URLs may be public/presigned)
+  console.log("[printbox] Auth fetch failed for render URL, trying without auth:", res.status);
+  return fetch(url);
+}
+
 export async function getOrders(params?: {
   customer_id?: number;
   number?: string;
