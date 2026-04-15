@@ -4,10 +4,10 @@ import { getProject, fetchRenderUrl } from "@/lib/printbox";
 export const dynamic = "force-dynamic";
 
 /**
- * Minimal tar parser — extracts the first file from a tar archive.
+ * Tar parser — extracts the first image/PDF file, skipping metadata like .md5 checksums.
  * Tar format: 512-byte header blocks followed by file data padded to 512 bytes.
  */
-function extractFirstFileFromTar(buffer: Buffer): {
+function extractImageFromTar(buffer: Buffer): {
   filename: string;
   data: Buffer;
 } | null {
@@ -37,8 +37,20 @@ function extractFirstFileFromTar(buffer: Buffer): {
     offset += 512; // Skip header
 
     if (isFile && size > 0) {
-      const data = buffer.subarray(offset, offset + size);
-      return { filename, data };
+      const lower = filename.toLowerCase();
+      // Skip metadata files (.md5, .txt, etc.) — look for actual content
+      const isContent =
+        lower.endsWith(".png") ||
+        lower.endsWith(".jpg") ||
+        lower.endsWith(".jpeg") ||
+        lower.endsWith(".pdf") ||
+        lower.endsWith(".tiff") ||
+        lower.endsWith(".tif");
+
+      if (isContent) {
+        const data = buffer.subarray(offset, offset + size);
+        return { filename, data };
+      }
     }
 
     // Skip to next 512-byte boundary
@@ -89,7 +101,7 @@ export async function GET(
     }
 
     const tarBuffer = Buffer.from(await tarRes.arrayBuffer());
-    const file = extractFirstFileFromTar(tarBuffer);
+    const file = extractImageFromTar(tarBuffer);
 
     if (!file) {
       console.error("[render-image] No file found in tar archive");

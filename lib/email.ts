@@ -47,9 +47,9 @@ async function getFromAddress(): Promise<string> {
 }
 
 /**
- * Minimal tar parser — extracts the first file from a tar archive.
+ * Tar parser — extracts the first image/PDF file, skipping metadata like .md5 checksums.
  */
-function extractFirstFileFromTar(buffer: Buffer): {
+function extractImageFromTar(buffer: Buffer): {
   filename: string;
   data: Buffer;
 } | null {
@@ -74,8 +74,19 @@ function extractFirstFileFromTar(buffer: Buffer): {
     offset += 512;
 
     if (isFile && size > 0) {
-      const data = buffer.subarray(offset, offset + size);
-      return { filename, data };
+      const lower = filename.toLowerCase();
+      const isContent =
+        lower.endsWith(".png") ||
+        lower.endsWith(".jpg") ||
+        lower.endsWith(".jpeg") ||
+        lower.endsWith(".pdf") ||
+        lower.endsWith(".tiff") ||
+        lower.endsWith(".tif");
+
+      if (isContent) {
+        const data = buffer.subarray(offset, offset + size);
+        return { filename, data };
+      }
     }
 
     offset += Math.ceil(size / 512) * 512;
@@ -85,15 +96,24 @@ function extractFirstFileFromTar(buffer: Buffer): {
 }
 
 /**
- * Download the rendered file. If it's a tar archive, extract the first file.
+ * Download the rendered file with retry (CDN may return 404 briefly after render completes).
  */
 async function downloadRender(url: string): Promise<{
   buffer: Buffer;
   contentType: string;
   filename: string;
 }> {
-  const res = await fetchRenderUrl(url);
-  if (!res.ok) throw new Error(`Failed to download render: ${res.status}`);
+  let res: Response | null = null;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    if (attempt > 0) {
+      console.log(`[email] Render download retry ${attempt}/4, waiting 3s...`);
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+    res = await fetchRenderUrl(url);
+    if (res.ok) break;
+    console.warn(`[email] Render download attempt ${attempt + 1} failed: ${res.status}`);
+  }
+  if (!res || !res.ok) throw new Error(`Failed to download render: ${res?.status}`);
 
   const contentType = res.headers.get("content-type") || "";
   const arrayBuffer = await res.arrayBuffer();
@@ -105,7 +125,7 @@ async function downloadRender(url: string): Promise<{
     contentType.includes("tar") ||
     contentType.includes("octet-stream")
   ) {
-    const file = extractFirstFileFromTar(buffer);
+    const file = extractImageFromTar(buffer);
     if (file) {
       const lower = file.filename.toLowerCase();
       let extractedType = "application/octet-stream";
