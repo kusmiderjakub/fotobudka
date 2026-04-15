@@ -42,12 +42,12 @@ export async function POST(request: NextRequest) {
           (p) => p.render_status === "SUCCESS" && p.render_url
         );
 
-        if (!renderedProject?.render_url) {
+        if (!renderedProject) {
           console.log("[webhook] No rendered project found for order:", orderNumber);
           return NextResponse.json({ ok: true });
         }
 
-        console.log("[webhook] Render URL:", renderedProject.render_url);
+        console.log("[webhook] Rendered project:", renderedProject.uuid);
 
         // 1) Try to get email from order reference (stored during auto-pay)
         let email: string | null = null;
@@ -75,8 +75,8 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ ok: true });
         }
 
-        // Send email with rendered file
-        await sendRenderedFile(email, renderedProject.render_url, orderNumber);
+        // Send email with rendered file (uses getProject() + CDN download, same as render-image endpoint)
+        await sendRenderedFile(email, renderedProject.uuid, orderNumber);
         console.log("[webhook] Email sent to:", email, "for order:", orderNumber);
 
         // Clean up Mailchimp tag if configured

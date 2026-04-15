@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { downloadProjectRender } from "./printbox";
 
 let _resend: Resend | null = null;
 function getResend(): Resend {
@@ -46,115 +47,19 @@ async function getFromAddress(): Promise<string> {
 }
 
 /**
- * Tar parser — extracts the first image/PDF file, skipping metadata like .md5 checksums.
+ * Download the render for a project and send it via email.
+ * Uses the same download path as the render-image API endpoint.
  */
-function extractImageFromTar(buffer: Buffer): {
-  filename: string;
-  data: Buffer;
-} | null {
-  let offset = 0;
-
-  while (offset + 512 <= buffer.length) {
-    const header = buffer.subarray(offset, offset + 512);
-    if (header.every((b) => b === 0)) break;
-
-    const filenameEnd = header.indexOf(0);
-    const filename = header
-      .subarray(0, filenameEnd > 0 && filenameEnd < 100 ? filenameEnd : 100)
-      .toString("utf-8")
-      .trim();
-
-    const sizeStr = header.subarray(124, 136).toString("utf-8").trim();
-    const size = parseInt(sizeStr, 8) || 0;
-
-    const typeFlag = header[156];
-    const isFile = typeFlag === 0 || typeFlag === 48;
-
-    offset += 512;
-
-    if (isFile && size > 0) {
-      const lower = filename.toLowerCase();
-      const isContent =
-        lower.endsWith(".png") ||
-        lower.endsWith(".jpg") ||
-        lower.endsWith(".jpeg") ||
-        lower.endsWith(".pdf") ||
-        lower.endsWith(".tiff") ||
-        lower.endsWith(".tif");
-
-      if (isContent) {
-        const data = buffer.subarray(offset, offset + size);
-        return { filename, data };
-      }
-    }
-
-    offset += Math.ceil(size / 512) * 512;
-  }
-
-  return null;
-}
-
-/**
- * Download the rendered file with retry (CDN may return 404 briefly after render completes).
- */
-async function downloadRender(url: string): Promise<{
-  buffer: Buffer;
-  contentType: string;
-  filename: string;
-}> {
-  let res: Response | null = null;
-  for (let attempt = 0; attempt < 5; attempt++) {
-    if (attempt > 0) {
-      console.log(`[email] Render download retry ${attempt}/4, waiting 3s...`);
-      await new Promise((r) => setTimeout(r, 3000));
-    }
-    res = await fetch(url, { cache: "no-store" });
-    if (res.ok) break;
-    console.warn(`[email] Render download attempt ${attempt + 1} failed: ${res.status}`);
-  }
-  if (!res || !res.ok) throw new Error(`Failed to download render: ${res?.status}`);
-
-  const contentType = res.headers.get("content-type") || "";
-  const arrayBuffer = await res.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-
-  // If it's a tar archive, extract the first file
-  if (
-    url.endsWith(".tar") ||
-    contentType.includes("tar") ||
-    contentType.includes("octet-stream")
-  ) {
-    const file = extractImageFromTar(buffer);
-    if (file) {
-      const lower = file.filename.toLowerCase();
-      let extractedType = "application/octet-stream";
-      if (lower.endsWith(".png")) extractedType = "image/png";
-      else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg"))
-        extractedType = "image/jpeg";
-      else if (lower.endsWith(".pdf")) extractedType = "application/pdf";
-
-      return {
-        buffer: Buffer.from(file.data),
-        contentType: extractedType,
-        filename: file.filename,
-      };
-    }
-  }
-
-  // Not a tar — return as-is
-  const isPdf = contentType.includes("pdf");
-  const filename = isPdf ? "postcard.pdf" : "postcard.png";
-
-  return { buffer, contentType, filename };
-}
-
 export async function sendRenderedFile(
   email: string,
-  renderUrl: string,
+  projectUuid: string,
   orderNumber: string
 ) {
-  // Download and extract the rendered file
-  const file = await downloadRender(renderUrl);
+  const file = await downloadProjectRender(projectUuid);
+  if (!file) {
+    throw new Error(`Render not ready for project ${projectUuid}`);
+  }
+
   const isImage = file.contentType.startsWith("image/");
 
   console.log(
@@ -219,12 +124,11 @@ export async function sendRenderedFile(
           <hr style="border: none; border-top: 1px solid #ddd5c8; margin: 0;" />
         </div>
 
-        <!-- About section — customize content here -->
+        <!-- About section -->
         <div style="padding: 32px; text-align: center;">
           <p style="font-size: 15px; color: #8d7e6a; line-height: 1.6; margin: 0 0 16px;">
             This postcard was created with Masterpiece AI at FESPA 2026.
           </p>
-          <!-- TODO: Add more "about us" content here -->
         </div>
 
         <!-- Footer -->

@@ -178,18 +178,107 @@ export async function getOrder(orderNumber: string): Promise<Order> {
 }
 
 /**
- * Fetch a render URL with Printbox auth (render archives may require it).
+ * Tar parser — extracts the first image/PDF file, skipping .md5 checksums.
  */
-export async function fetchRenderUrl(url: string): Promise<Response> {
-  const token = await getToken();
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (res.ok) return res;
+function extractImageFromTar(buffer: Buffer): {
+  filename: string;
+  data: Buffer;
+} | null {
+  let offset = 0;
+  while (offset + 512 <= buffer.length) {
+    const header = buffer.subarray(offset, offset + 512);
+    if (header.every((b) => b === 0)) break;
 
-  // If auth failed, try without auth (some URLs may be public/presigned)
-  console.log("[printbox] Auth fetch failed for render URL, trying without auth:", res.status);
-  return fetch(url);
+    const filenameEnd = header.indexOf(0);
+    const filename = header
+      .subarray(0, filenameEnd > 0 && filenameEnd < 100 ? filenameEnd : 100)
+      .toString("utf-8")
+      .trim();
+
+    const sizeStr = header.subarray(124, 136).toString("utf-8").trim();
+    const size = parseInt(sizeStr, 8) || 0;
+
+    const typeFlag = header[156];
+    const isFile = typeFlag === 0 || typeFlag === 48;
+
+    offset += 512;
+
+    if (isFile && size > 0) {
+      const lower = filename.toLowerCase();
+      const isContent =
+        lower.endsWith(".png") ||
+        lower.endsWith(".jpg") ||
+        lower.endsWith(".jpeg") ||
+        lower.endsWith(".pdf") ||
+        lower.endsWith(".tiff") ||
+        lower.endsWith(".tif");
+      if (isContent) {
+        return { filename, data: buffer.subarray(offset, offset + size) };
+      }
+    }
+
+    offset += Math.ceil(size / 512) * 512;
+  }
+  return null;
+}
+
+export interface RenderResult {
+  buffer: Buffer;
+  contentType: string;
+  filename: string;
+}
+
+/**
+ * Download and extract the rendered image for a project.
+ * Uses getProject() to get a fresh render_url, then downloads from CDN with retry.
+ * Returns null if the render is not ready yet.
+ */
+export async function downloadProjectRender(
+  projectUuid: string
+): Promise<RenderResult | null> {
+  const project = await getProject(projectUuid);
+  console.log("[printbox] downloadProjectRender", projectUuid, "render_status:", project.render_status);
+
+  if (project.render_status !== "SUCCESS" || !project.render_url) {
+    return null;
+  }
+
+  // Retry download — CDN may 404 briefly after render completes
+  let tarRes: Response | null = null;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    if (attempt > 0) {
+      console.log(`[printbox] Render download retry ${attempt}/4, waiting 3s...`);
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+    tarRes = await fetch(project.render_url, { cache: "no-store" });
+    if (tarRes.ok) break;
+    console.warn(`[printbox] Render download attempt ${attempt + 1} failed:`, tarRes.status);
+  }
+
+  if (!tarRes || !tarRes.ok) {
+    throw new Error(`Failed to download render: ${tarRes?.status}`);
+  }
+
+  const tarBuffer = Buffer.from(await tarRes.arrayBuffer());
+  const file = extractImageFromTar(tarBuffer);
+
+  if (!file) {
+    throw new Error("No image file found in render archive");
+  }
+
+  console.log("[printbox] Extracted:", file.filename, "size:", file.data.length);
+
+  const lower = file.filename.toLowerCase();
+  let contentType = "application/octet-stream";
+  if (lower.endsWith(".png")) contentType = "image/png";
+  else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) contentType = "image/jpeg";
+  else if (lower.endsWith(".pdf")) contentType = "application/pdf";
+
+  return {
+    buffer: Buffer.from(file.data),
+    contentType,
+    filename: file.filename,
+  };
 }
 
 export async function getOrders(params?: {
