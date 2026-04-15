@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendRenderedFile } from "@/lib/email";
 import { getOrder } from "@/lib/printbox";
+import { sendRenderedFileWithBuffer } from "@/lib/email";
 import {
   isConfigured as isMailchimpConfigured,
   getEmailByOrderNumber,
@@ -40,53 +40,75 @@ export async function POST(request: NextRequest) {
       const status = payload.data?.status;
 
       if (status === "Rendered" && orderNumber) {
-        // Get project UUID directly from webhook payload (no API call needed)
+        // Get project UUID directly from webhook payload
         const projectUuid = payload.data.projects?.[0]?.uuid;
         if (!projectUuid) {
-          console.log("[webhook] No project UUID in webhook payload for order:", orderNumber);
+          console.log("[webhook] No project UUID in payload for order:", orderNumber);
           return NextResponse.json({ ok: true });
         }
+        console.log("[webhook] Project:", projectUuid);
 
-        console.log("[webhook] Project UUID from payload:", projectUuid);
-
-        // Get email: first try order reference (from payload), then fetch order, then Mailchimp
+        // Get email from payload reference, API, or Mailchimp
         let email: string | null = null;
-
-        // The reference field is in the webhook payload itself
         const reference = payload.data.reference;
         if (reference && looksLikeEmail(reference)) {
           email = reference;
-          console.log("[webhook] Got email from payload reference:", email);
         }
-
-        // Fallback: fetch order from API
         if (!email) {
           try {
             const order = await getOrder(orderNumber);
             if (order.reference && looksLikeEmail(order.reference)) {
               email = order.reference;
-              console.log("[webhook] Got email from order API:", email);
             }
           } catch (err) {
             console.warn("[webhook] Failed to fetch order:", err);
           }
         }
-
-        // Fallback: Mailchimp
         if (!email && isMailchimpConfigured()) {
           email = await getEmailByOrderNumber(orderNumber);
-          if (email) {
-            console.log("[webhook] Got email from Mailchimp:", email);
-          }
         }
-
         if (!email) {
           console.warn("[webhook] No email found for order:", orderNumber);
           return NextResponse.json({ ok: true });
         }
+        console.log("[webhook] Email:", email);
 
-        // Send email with rendered file
-        await sendRenderedFile(email, projectUuid, orderNumber);
+        // Fetch rendered image from our own API endpoint (proven to work)
+        const origin = new URL(request.url).origin;
+        const renderUrl = `${origin}/api/projects/${projectUuid}/render-image`;
+        console.log("[webhook] Fetching render from own API:", renderUrl);
+
+        let imageBuffer: Buffer | null = null;
+        let contentType = "image/png";
+
+        for (let attempt = 0; attempt < 8; attempt++) {
+          if (attempt > 0) {
+            await new Promise((r) => setTimeout(r, 3000));
+          }
+          console.log(`[webhook] Render fetch attempt ${attempt + 1}`);
+          const res = await fetch(renderUrl, { cache: "no-store" });
+          const ct = res.headers.get("content-type") || "";
+
+          if (res.ok && ct.startsWith("image/")) {
+            imageBuffer = Buffer.from(await res.arrayBuffer());
+            contentType = ct;
+            console.log("[webhook] Got image, size:", imageBuffer.length);
+            break;
+          }
+          if (res.status === 202) {
+            console.log("[webhook] Render not ready yet, retrying...");
+            continue;
+          }
+          console.warn("[webhook] Render fetch failed:", res.status, ct);
+        }
+
+        if (!imageBuffer) {
+          console.error("[webhook] Failed to get render image after retries");
+          return NextResponse.json({ error: "Render not available" }, { status: 500 });
+        }
+
+        // Send email with the image
+        await sendRenderedFileWithBuffer(email, imageBuffer, contentType, orderNumber);
         console.log("[webhook] Email sent to:", email, "for order:", orderNumber);
 
         // Clean up Mailchimp tag if configured
