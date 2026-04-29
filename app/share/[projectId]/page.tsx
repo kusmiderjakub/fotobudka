@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ img?: string }>;
+  searchParams: Promise<{ img?: string; platform?: string }>;
 }
 
 async function fetchThumbnail(projectId: string): Promise<string | null> {
@@ -43,10 +43,10 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 export default async function SharePage({ params, searchParams }: Props) {
   const { projectId } = await params;
-  const { img } = await searchParams;
+  const { img, platform } = await searchParams;
 
   // Prefer API thumbnail (higher quality) over SDK thumbnail passed via QR
   const thumbnailUrl = await fetchThumbnail(projectId) || img || null;
 
-  return <SharePageClient projectId={projectId} thumbnailUrl={thumbnailUrl} />;
+  return <SharePageClient projectId={projectId} thumbnailUrl={thumbnailUrl} platform={platform} />;
 }
