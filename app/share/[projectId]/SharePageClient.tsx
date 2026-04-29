@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-const serifFont =
-  "ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif";
+const latoFont =
+  "'Lato', Arial, Helvetica, sans-serif";
 
 interface SharePageClientProps {
   projectId: string;
@@ -87,7 +87,7 @@ export default function SharePageClient({
   const displayImageUrl = renderImageUrl || thumbnailUrl;
 
   const handleShare = useCallback(async () => {
-    const shareText = "I just designed this postcard with Masterpiece AI at FESPA 2026! 🎨\n\n#FESPA2026 #MasterpieceAI #Printbox";
+    const shareText = "Just got my postcard from FESPA 2026 in Barcelona. Stamped with Masterpiece AI by @Printbox \u{1f1ea}\u{1f1f8}\u{2709}\u{fe0f}!\n\n#StampedWithMasterpieceAI #PostcardFromFESPA #FESPA2026";
 
     // Try sharing with the image file attached
     if (navigator.share) {
@@ -167,13 +167,13 @@ export default function SharePageClient({
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "#eeece2",
+        backgroundColor: "#ffffff",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         padding: "40px 24px",
-        fontFamily: serifFont,
+        fontFamily: latoFont,
       }}
     >
       <div
@@ -189,8 +189,8 @@ export default function SharePageClient({
         <h1
           style={{
             fontSize: 32,
-            fontWeight: 400,
-            color: "#3d3929",
+            fontWeight: 700,
+            color: "#2f2663",
             margin: 0,
             lineHeight: 1.2,
             textAlign: "center",
@@ -217,7 +217,7 @@ export default function SharePageClient({
               position: "relative",
               minHeight: 200,
               width: "100%",
-              backgroundColor: "#f5f3ed",
+              backgroundColor: "#e8e5f5",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -253,13 +253,13 @@ export default function SharePageClient({
                       style={{
                         width: 40,
                         height: 40,
-                        border: "4px solid #ddd5c8",
-                        borderTopColor: "#da7756",
+                        border: "4px solid #e8e5f5",
+                        borderTopColor: "#fe9528",
                         borderRadius: "50%",
                         animation: "spin 1s linear infinite",
                       }}
                     />
-                    <p style={{ fontSize: 13, color: "#8d7e6a", margin: 0 }}>
+                    <p style={{ fontSize: 13, color: "#666666", margin: 0 }}>
                       Loading high-res preview...
                     </p>
                     <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -280,13 +280,13 @@ export default function SharePageClient({
                   style={{
                     width: 40,
                     height: 40,
-                    border: "4px solid #ddd5c8",
-                    borderTopColor: "#da7756",
+                    border: "4px solid #e8e5f5",
+                    borderTopColor: "#fe9528",
                     borderRadius: "50%",
                     animation: "spin 1s linear infinite",
                   }}
                 />
-                <p style={{ fontSize: 13, color: "#8d7e6a", margin: 0 }}>
+                <p style={{ fontSize: 13, color: "#666666", margin: 0 }}>
                   Preparing your postcard...
                 </p>
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -295,7 +295,7 @@ export default function SharePageClient({
               <div
                 style={{
                   padding: 60,
-                  color: "#8d7e6a",
+                  color: "#666666",
                   fontSize: 16,
                 }}
               >
@@ -305,19 +305,16 @@ export default function SharePageClient({
           </div>
         </div>
 
-        <p
-          style={{
-            fontSize: 15,
-            color: "#8d7e6a",
-            margin: 0,
-            textAlign: "center",
-            lineHeight: 1.5,
-          }}
-        >
-          Created with Masterpiece AI by Printbox
-        </p>
+        <div style={{ textAlign: "center" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/masterpiece-logo.png"
+            alt="Masterpiece AI by Printbox"
+            style={{ height: 32 }}
+          />
+        </div>
 
-        {/* Share button — uses native share sheet on mobile, LinkedIn fallback on desktop */}
+        {/* Share button */}
         <button
           onClick={handleShare}
           style={{
@@ -329,12 +326,12 @@ export default function SharePageClient({
             maxWidth: 360,
             padding: "14px 24px",
             fontSize: 16,
-            fontWeight: 600,
-            fontFamily: serifFont,
-            backgroundColor: "#0a66c2",
+            fontWeight: 700,
+            fontFamily: latoFont,
+            backgroundColor: "#fe9528",
             color: "#fff",
             border: "none",
-            borderRadius: 12,
+            borderRadius: 8,
             cursor: "pointer",
           }}
         >
@@ -361,12 +358,12 @@ export default function SharePageClient({
               maxWidth: 360,
               padding: "14px 24px",
               fontSize: 16,
-              fontWeight: 600,
-              fontFamily: serifFont,
+              fontWeight: 700,
+              fontFamily: latoFont,
               backgroundColor: "transparent",
-              color: "#3d3929",
-              border: "1.5px solid #ddd5c8",
-              borderRadius: 12,
+              color: "#2f2663",
+              border: "2px solid #2f2663",
+              borderRadius: 8,
               cursor: "pointer",
             }}
           >

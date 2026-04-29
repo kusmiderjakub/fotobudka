@@ -46,6 +46,134 @@ async function getFromAddress(): Promise<string> {
   return "Fotobudka <onboarding@resend.dev>";
 }
 
+function getAppBaseUrl(): string {
+  if (process.env.APP_URL) return process.env.APP_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  if (process.env.VERCEL_URL)
+    return `https://${process.env.VERCEL_URL}`;
+  return "https://fotobudka.vercel.app";
+}
+
+const EMAIL_SUBJECT = "You've got mail! Your postcard has just arrived.";
+
+function buildEmailHtml(isImage: boolean, projectUuid: string): string {
+  const shareUrl = `${getAppBaseUrl()}/share/${projectUuid}`;
+  const shareText = encodeURIComponent(
+    "Just got my postcard from FESPA 2026 in Barcelona. Stamped with Masterpiece AI by @Printbox \u{1f1ea}\u{1f1f8}\u{2709}\u{fe0f}!\n\n#StampedWithMasterpieceAI #PostcardFromFESPA #FESPA2026"
+  );
+  const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${shareText}`;
+  const tiktokUrl = `https://www.tiktok.com/search?q=%23StampedWithMasterpieceAI`;
+
+  const postcardSection = isImage
+    ? `<div style="padding: 0 40px;">
+          <div style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+            <img src="cid:postcard" alt="Your postcard" style="width: 100%; display: block;" />
+          </div>
+        </div>`
+    : `<div style="padding: 0 40px;">
+          <div style="background: #ffffff; border-radius: 12px; padding: 32px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+            <p style="font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 14px; color: #333333; margin: 0;">
+              Your postcard is attached to this email.
+            </p>
+          </div>
+        </div>`;
+
+  return `
+    <div style="font-family: 'Lato', Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+      <!-- Header logo -->
+      <div style="padding: 40px 40px 0; text-align: center;">
+        <img src="https://cdn.prod.website-files.com/68357ad7b05d1d4ba4d8a89f/68357ad7b05d1d4ba4d8a93f_masterpiece_logo_transparent.png" alt="Masterpiece AI by Printbox" style="height: 40px; margin: 0 0 32px;" />
+      </div>
+
+      <!-- Headline -->
+      <div style="padding: 0 40px; text-align: center;">
+        <h1 style="font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 28px; font-weight: 700; color: #2f2663; margin: 0 0 12px; line-height: 1.3;">
+          The postman just delivered something special for you!
+        </h1>
+        <p style="font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 14px; color: #333333; line-height: 1.6; margin: 0 0 32px;">
+          Your postcard is sealed, stamped and delivered &mdash; straight to your inbox.
+        </p>
+      </div>
+
+      <!-- Postcard preview -->
+      ${postcardSection}
+
+      <!-- Caption -->
+      <div style="padding: 16px 40px 0; text-align: center;">
+        <p style="font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 12px; font-style: italic; color: #666666; margin: 0;">
+          Stamped and created with Masterpiece AI at FESPA 2026, Barcelona.
+        </p>
+      </div>
+
+      <!-- Divider -->
+      <div style="padding: 32px 40px;">
+        <hr style="border: none; border-top: 1px solid #fe9528; margin: 0;" />
+      </div>
+
+      <!-- Share section -->
+      <div style="padding: 0 40px; text-align: center;">
+        <h2 style="font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 18px; font-weight: 700; color: #2f2663; margin: 0 0 8px;">
+          Liked your postcard? Send it to the world!
+        </h2>
+        <p style="font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 14px; color: #333333; line-height: 1.6; margin: 0 0 24px;">
+          Share your creation on your social media and show your friends what arrived in your inbox today.
+        </p>
+        <p style="font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 14px; color: #333333; line-height: 1.6; margin: 0 0 16px;">
+          You can freely use this caption with personalised hashtag <strong style="color: #fe9528;">#StampedWithMasterpieceAI</strong>
+        </p>
+      </div>
+
+      <!-- Quote Box -->
+      <div style="padding: 0 40px; margin-bottom: 16px;">
+        <div style="background-color: #e8e5f5; border-radius: 12px; padding: 20px 24px;">
+          <p style="font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 14px; font-style: italic; color: #2f2663; line-height: 1.6; margin: 0;">
+            Just got my postcard from FESPA 2026 in Barcelona. Stamped with Masterpiece AI by <strong>@Printbox</strong> \u{1f1ea}\u{1f1f8}\u{2709}\u{fe0f}!
+          </p>
+        </div>
+      </div>
+
+      <!-- Hashtags -->
+      <div style="padding: 0 40px 24px; text-align: center;">
+        <p style="font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 12px; font-weight: 700; color: #fe9528; margin: 0;">
+          #StampedWithMasterpieceAI &nbsp; #PostcardFromFESPA &nbsp; #FESPA2026
+        </p>
+      </div>
+
+      <!-- Social media buttons -->
+      <div style="padding: 0 40px 32px; text-align: center;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+          <tr>
+            <td style="padding: 0 6px;">
+              <a href="${linkedInUrl}" target="_blank" style="display: inline-block; background-color: #fe9528; color: #ffffff; font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; border-radius: 8px; padding: 12px 24px;">
+                LinkedIn
+              </a>
+            </td>
+            <td style="padding: 0 6px;">
+              <a href="${facebookUrl}" target="_blank" style="display: inline-block; background-color: #fe9528; color: #ffffff; font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; border-radius: 8px; padding: 12px 24px;">
+                Facebook
+              </a>
+            </td>
+            <td style="padding: 0 6px;">
+              <a href="${tiktokUrl}" target="_blank" style="display: inline-block; background-color: #fe9528; color: #ffffff; font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; border-radius: 8px; padding: 12px 24px;">
+                TikTok
+              </a>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding: 0 40px 40px; text-align: center;">
+        <p style="font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 12px; font-style: italic; color: #666666; margin: 0;">
+          Powered by Masterpiece AI &amp; Printbox
+        </p>
+      </div>
+    </div>
+  `;
+}
+
 /**
  * Download the render for a project and send it via email.
  * Uses the same download path as the render-image API endpoint.
@@ -79,7 +207,7 @@ export async function sendRenderedFile(
   const { data, error } = await getResend().emails.send({
     from: fromAddress,
     to: email,
-    subject: "Your postcard is ready!",
+    subject: EMAIL_SUBJECT,
     attachments: [
       {
         filename: file.filename,
@@ -87,58 +215,7 @@ export async function sendRenderedFile(
         contentId: "postcard",
       },
     ],
-    html: `
-      <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; background-color: #eeece2;">
-        <!-- Header -->
-        <div style="padding: 40px 32px 0; text-align: center;">
-          <p style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #a89a85; margin: 0 0 24px;">
-            Masterpiece AI
-          </p>
-          <h1 style="font-size: 32px; font-weight: 400; color: #3d3929; margin: 0 0 8px; line-height: 1.2;">
-            Your postcard is ready!
-          </h1>
-          <p style="font-size: 16px; color: #8d7e6a; line-height: 1.6; margin: 0 0 32px;">
-            Your design has been printed and is attached to this email.
-          </p>
-        </div>
-
-        <!-- Postcard preview (only for images) -->
-        ${isImage ? `
-        <div style="padding: 0 32px;">
-          <div style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-            <img src="cid:postcard" alt="Your postcard" style="width: 100%; display: block;" />
-          </div>
-        </div>
-        ` : `
-        <div style="padding: 0 32px;">
-          <div style="background: #fff; border-radius: 16px; padding: 32px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-            <p style="font-size: 16px; color: #8d7e6a; margin: 0;">
-              Your postcard is attached to this email.
-            </p>
-          </div>
-        </div>
-        `}
-
-        <!-- Divider -->
-        <div style="padding: 32px 32px 0;">
-          <hr style="border: none; border-top: 1px solid #ddd5c8; margin: 0;" />
-        </div>
-
-        <!-- About section -->
-        <div style="padding: 32px; text-align: center;">
-          <p style="font-size: 15px; color: #8d7e6a; line-height: 1.6; margin: 0 0 16px;">
-            This postcard was created with Masterpiece AI at FESPA 2026.
-          </p>
-        </div>
-
-        <!-- Footer -->
-        <div style="padding: 0 32px 32px; text-align: center;">
-          <p style="font-size: 12px; color: #b5a899; margin: 0;">
-            Powered by Printbox
-          </p>
-        </div>
-      </div>
-    `,
+    html: buildEmailHtml(isImage, projectUuid),
   });
 
   if (error) {
@@ -156,7 +233,8 @@ export async function sendRenderedFileWithBuffer(
   email: string,
   imageBuffer: Buffer,
   contentType: string,
-  orderNumber: string
+  orderNumber: string,
+  projectUuid?: string
 ) {
   const isImage = contentType.startsWith("image/");
   const filename = contentType.includes("png") ? "postcard.png" : "postcard.jpg";
@@ -169,7 +247,7 @@ export async function sendRenderedFileWithBuffer(
   const { data, error } = await getResend().emails.send({
     from: fromAddress,
     to: email,
-    subject: "Your postcard is ready!",
+    subject: EMAIL_SUBJECT,
     attachments: [
       {
         filename,
@@ -177,45 +255,7 @@ export async function sendRenderedFileWithBuffer(
         contentId: "postcard",
       },
     ],
-    html: `
-      <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; background-color: #eeece2;">
-        <div style="padding: 40px 32px 0; text-align: center;">
-          <p style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #a89a85; margin: 0 0 24px;">
-            Masterpiece AI
-          </p>
-          <h1 style="font-size: 32px; font-weight: 400; color: #3d3929; margin: 0 0 8px; line-height: 1.2;">
-            Your postcard is ready!
-          </h1>
-          <p style="font-size: 16px; color: #8d7e6a; line-height: 1.6; margin: 0 0 32px;">
-            Your design has been printed and is attached to this email.
-          </p>
-        </div>
-        ${isImage ? `
-        <div style="padding: 0 32px;">
-          <div style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-            <img src="cid:postcard" alt="Your postcard" style="width: 100%; display: block;" />
-          </div>
-        </div>
-        ` : `
-        <div style="padding: 0 32px;">
-          <div style="background: #fff; border-radius: 16px; padding: 32px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-            <p style="font-size: 16px; color: #8d7e6a; margin: 0;">Your postcard is attached to this email.</p>
-          </div>
-        </div>
-        `}
-        <div style="padding: 32px 32px 0;">
-          <hr style="border: none; border-top: 1px solid #ddd5c8; margin: 0;" />
-        </div>
-        <div style="padding: 32px; text-align: center;">
-          <p style="font-size: 15px; color: #8d7e6a; line-height: 1.6; margin: 0 0 16px;">
-            This postcard was created with Masterpiece AI at FESPA 2026.
-          </p>
-        </div>
-        <div style="padding: 0 32px 32px; text-align: center;">
-          <p style="font-size: 12px; color: #b5a899; margin: 0;">Powered by Printbox</p>
-        </div>
-      </div>
-    `,
+    html: buildEmailHtml(isImage, projectUuid || orderNumber),
   });
 
   if (error) {

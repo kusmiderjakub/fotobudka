@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     // Step 4: Send email
     console.log("[webhook] Step 4 - Sending email to:", email);
-    await sendRenderedFileWithBuffer(email, imageBuffer, contentType, orderNumber);
+    await sendRenderedFileWithBuffer(email, imageBuffer, contentType, orderNumber, projectUuid);
     console.log("[webhook] Email sent successfully!");
 
     // Step 5: Clean up Mailchimp

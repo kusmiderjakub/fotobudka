@@ -12,8 +12,8 @@ const STORE_NAME = "default_store";
 const CURRENCY = "EUR";
 const DEFAULT_FAMILY_ID = "323";
 
-const serifFont =
-  "ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif";
+const latoFont =
+  "'Lato', Arial, Helvetica, sans-serif";
 
 declare global {
   interface Window {
@@ -232,7 +232,7 @@ function EditorContent() {
       style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: "#eeece2",
+        backgroundColor: "#ffffff",
         overflow: "hidden",
       }}
     >
@@ -254,7 +254,7 @@ function EditorContent() {
           style={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(238, 236, 226, 0.95)",
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
             backdropFilter: "blur(2px)",
             display: "flex",
             alignItems: "center",
@@ -266,8 +266,8 @@ function EditorContent() {
             style={{
               width: 48,
               height: 48,
-              border: "4px solid #ddd5c8",
-              borderTopColor: "#da7756",
+              border: "4px solid #e8e5f5",
+              borderTopColor: "#fe9528",
               borderRadius: "50%",
               animation: "spin 1s linear infinite",
             }}
@@ -284,9 +284,9 @@ function EditorContent() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "#3d3929",
+            color: "#333333",
             fontSize: 18,
-            fontFamily: serifFont,
+            fontFamily: latoFont,
             zIndex: 9999999,
           }}
         >
@@ -297,12 +297,12 @@ function EditorContent() {
               style={{
                 marginTop: 16,
                 padding: "10px 24px",
-                backgroundColor: "#da7756",
+                backgroundColor: "#fe9528",
                 color: "#fff",
                 border: "none",
                 borderRadius: 8,
                 fontSize: 16,
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: "pointer",
               }}
             >
@@ -318,7 +318,7 @@ function EditorContent() {
           style={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(238, 236, 226, 0.97)",
+            backgroundColor: "rgba(255, 255, 255, 0.97)",
             backdropFilter: "blur(12px)",
             display: "flex",
             flexDirection: "column",
@@ -345,11 +345,11 @@ function EditorContent() {
                   <h1
                     style={{
                       fontSize: 38,
-                      fontWeight: 400,
-                      color: "#3d3929",
+                      fontWeight: 700,
+                      color: "#2f2663",
                       margin: 0,
                       lineHeight: 1.15,
-                      fontFamily: serifFont,
+                      fontFamily: latoFont,
                     }}
                   >
                     Almost there!
@@ -357,10 +357,10 @@ function EditorContent() {
                   <p
                     style={{
                       fontSize: 17,
-                      color: "#8d7e6a",
+                      color: "#666666",
                       marginTop: 12,
                       marginBottom: 0,
-                      fontFamily: serifFont,
+                      fontFamily: latoFont,
                       lineHeight: 1.5,
                     }}
                   >
@@ -394,11 +394,11 @@ function EditorContent() {
                       width: "100%",
                       padding: "14px 16px",
                       fontSize: 16,
-                      fontFamily: serifFont,
-                      border: "1.5px solid #ddd5c8",
+                      fontFamily: latoFont,
+                      border: "1.5px solid #e8e5f5",
                       borderRadius: 12,
-                      backgroundColor: "#faf8f4",
-                      color: "#3d3929",
+                      backgroundColor: "#f8f7fc",
+                      color: "#333333",
                       outline: "none",
                       boxSizing: "border-box",
                     }}
@@ -410,9 +410,9 @@ function EditorContent() {
                       width: "100%",
                       padding: "14px",
                       fontSize: 16,
-                      fontWeight: 600,
-                      fontFamily: serifFont,
-                      backgroundColor: "#da7756",
+                      fontWeight: 700,
+                      fontFamily: latoFont,
+                      backgroundColor: "#fe9528",
                       color: "#fff",
                       border: "none",
                       borderRadius: 12,
@@ -433,8 +433,8 @@ function EditorContent() {
                   style={{
                     width: 64,
                     height: 64,
-                    border: "4px solid #ddd5c8",
-                    borderTopColor: "#da7756",
+                    border: "4px solid #e8e5f5",
+                    borderTopColor: "#fe9528",
                     borderRadius: "50%",
                     animation: "spin 1s linear infinite",
                   }}
@@ -444,10 +444,10 @@ function EditorContent() {
                   <h1
                     style={{
                       fontSize: 32,
-                      fontWeight: 400,
-                      color: "#3d3929",
+                      fontWeight: 700,
+                      color: "#2f2663",
                       margin: 0,
-                      fontFamily: serifFont,
+                      fontFamily: latoFont,
                     }}
                   >
                     Sending to print...
@@ -464,7 +464,7 @@ function EditorContent() {
                     width: 80,
                     height: 80,
                     borderRadius: "50%",
-                    backgroundColor: "#4caf50",
+                    backgroundColor: "#fe9528",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -491,11 +491,11 @@ function EditorContent() {
                   <h1
                     style={{
                       fontSize: 34,
-                      fontWeight: 400,
-                      color: "#3d3929",
+                      fontWeight: 700,
+                      color: "#2f2663",
                       margin: 0,
                       lineHeight: 1.15,
-                      fontFamily: serifFont,
+                      fontFamily: latoFont,
                     }}
                   >
                     Your postcard is printing!
@@ -503,10 +503,10 @@ function EditorContent() {
                   <p
                     style={{
                       fontSize: 17,
-                      color: "#8d7e6a",
+                      color: "#666666",
                       marginTop: 12,
                       marginBottom: 0,
-                      fontFamily: serifFont,
+                      fontFamily: latoFont,
                       lineHeight: 1.5,
                     }}
                   >
@@ -531,7 +531,7 @@ function EditorContent() {
                     })()}
                     size={200}
                     bgColor="#ffffff"
-                    fgColor="#3d3929"
+                    fgColor="#2f2663"
                     level="L"
                   />
                 </div>
@@ -543,9 +543,9 @@ function EditorContent() {
                     maxWidth: 360,
                     padding: "14px",
                     fontSize: 16,
-                    fontWeight: 600,
-                    fontFamily: serifFont,
-                    backgroundColor: "#da7756",
+                    fontWeight: 700,
+                    fontFamily: latoFont,
+                    backgroundColor: "#fe9528",
                     color: "#fff",
                     border: "none",
                     borderRadius: 12,
@@ -565,7 +565,7 @@ function EditorContent() {
                     width: 80,
                     height: 80,
                     borderRadius: "50%",
-                    backgroundColor: payError ? "#c44" : "#4caf50",
+                    backgroundColor: payError ? "#c44" : "#fe9528",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -595,11 +595,11 @@ function EditorContent() {
                   <h1
                     style={{
                       fontSize: 38,
-                      fontWeight: 400,
-                      color: "#3d3929",
+                      fontWeight: 700,
+                      color: "#2f2663",
                       margin: 0,
                       lineHeight: 1.15,
-                      fontFamily: serifFont,
+                      fontFamily: latoFont,
                     }}
                   >
                     {payError ? "Something went wrong" : "Your postcard is printing!"}
@@ -607,10 +607,10 @@ function EditorContent() {
                   <p
                     style={{
                       fontSize: 17,
-                      color: "#8d7e6a",
+                      color: "#666666",
                       marginTop: 12,
                       marginBottom: 0,
-                      fontFamily: serifFont,
+                      fontFamily: latoFont,
                       lineHeight: 1.5,
                     }}
                   >

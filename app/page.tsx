@@ -12,8 +12,8 @@ interface ProductData {
   editorModuleId: number | null;
 }
 
-const serifFont =
-  "ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif";
+const latoFont =
+  "'Lato', Arial, Helvetica, sans-serif";
 
 export default function Home() {
   const [products, setProducts] = useState<ProductData[]>([]);
@@ -53,7 +53,7 @@ export default function Home() {
     <div
       style={{
         minHeight: "100dvh",
-        backgroundColor: "#eeece2",
+        backgroundColor: "#ffffff",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -61,27 +61,22 @@ export default function Home() {
         boxSizing: "border-box",
       }}
     >
-      {/* Subtle top branding */}
+      {/* Top branding logo */}
       <div
         style={{
           position: "absolute",
-          top: 32,
+          top: 24,
           left: 0,
           right: 0,
           textAlign: "center",
         }}
       >
-        <span
-          style={{
-            fontSize: 13,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "#a89a85",
-            fontFamily: serifFont,
-          }}
-        >
-          Masterpiece AI
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/masterpiece-logo.png"
+          alt="Masterpiece AI by Printbox"
+          style={{ height: 40 }}
+        />
       </div>
 
       {/* Main content */}
@@ -102,11 +97,11 @@ export default function Home() {
           <h1
             style={{
               fontSize: 42,
-              fontWeight: 400,
-              color: "#3d3929",
+              fontWeight: 700,
+              color: "#2f2663",
               margin: 0,
               lineHeight: 1.15,
-              fontFamily: serifFont,
+              fontFamily: latoFont,
             }}
           >
             Create your
@@ -116,10 +111,10 @@ export default function Home() {
           <p
             style={{
               fontSize: 17,
-              color: "#8d7e6a",
+              color: "#666666",
               marginTop: 12,
               marginBottom: 0,
-              fontFamily: serifFont,
+              fontFamily: latoFont,
               lineHeight: 1.5,
             }}
           >
@@ -146,8 +141,8 @@ export default function Home() {
               style={{
                 width: 40,
                 height: 40,
-                border: "4px solid #ddd5c8",
-                borderTopColor: "#da7756",
+                border: "4px solid #e8e5f5",
+                borderTopColor: "#fe9528",
                 borderRadius: "50%",
                 animation: "spin 1s linear infinite",
               }}
@@ -163,7 +158,7 @@ export default function Home() {
               textAlign: "center",
               color: "#c44",
               fontSize: 16,
-              fontFamily: serifFont,
+              fontFamily: latoFont,
             }}
           >
             {error}
@@ -211,7 +206,7 @@ export default function Home() {
                   style={{
                     width: "100%",
                     aspectRatio: "1 / 1",
-                    backgroundColor: "#f5f3ed",
+                    backgroundColor: "#e8e5f5",
                     overflow: "hidden",
                   }}
                 >
@@ -235,9 +230,9 @@ export default function Home() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        color: "#c4b8a6",
+                        color: "#666666",
                         fontSize: 13,
-                        fontFamily: serifFont,
+                        fontFamily: latoFont,
                       }}
                     >
                       No image
@@ -248,9 +243,9 @@ export default function Home() {
                   <div
                     style={{
                       fontSize: 14,
-                      fontWeight: 500,
-                      color: "#3d3929",
-                      fontFamily: serifFont,
+                      fontWeight: 700,
+                      color: "#333333",
+                      fontFamily: latoFont,
                       lineHeight: 1.3,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -279,11 +274,12 @@ export default function Home() {
         <span
           style={{
             fontSize: 12,
-            color: "#c4b8a6",
-            fontFamily: serifFont,
+            fontStyle: "italic",
+            color: "#666666",
+            fontFamily: latoFont,
           }}
         >
-          Powered by Printbox
+          Powered by Masterpiece AI &amp; Printbox
         </span>
       </div>
     </div>

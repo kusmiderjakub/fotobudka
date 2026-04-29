@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const serifFont =
-  "ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif";
+const latoFont =
+  "'Lato', Arial, Helvetica, sans-serif";
 
 export default function OrderCompleteContent() {
   const router = useRouter();
@@ -35,7 +35,7 @@ export default function OrderCompleteContent() {
     <div
       style={{
         minHeight: "100dvh",
-        backgroundColor: "#eeece2",
+        backgroundColor: "#ffffff",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -47,23 +47,18 @@ export default function OrderCompleteContent() {
       <div
         style={{
           position: "absolute",
-          top: 32,
+          top: 24,
           left: 0,
           right: 0,
           textAlign: "center",
         }}
       >
-        <span
-          style={{
-            fontSize: 13,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "#a89a85",
-            fontFamily: serifFont,
-          }}
-        >
-          Masterpiece AI
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/masterpiece-logo.png"
+          alt="Masterpiece AI by Printbox"
+          style={{ height: 40 }}
+        />
       </div>
 
       <div
@@ -81,7 +76,7 @@ export default function OrderCompleteContent() {
             width: 72,
             height: 72,
             borderRadius: "50%",
-            backgroundColor: "#da7756",
+            backgroundColor: "#fe9528",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -105,11 +100,11 @@ export default function OrderCompleteContent() {
           <h1
             style={{
               fontSize: 38,
-              fontWeight: 400,
-              color: "#3d3929",
+              fontWeight: 700,
+              color: "#2f2663",
               margin: 0,
               lineHeight: 1.15,
-              fontFamily: serifFont,
+              fontFamily: latoFont,
             }}
           >
             Your postcard is printing
@@ -117,10 +112,10 @@ export default function OrderCompleteContent() {
           <p
             style={{
               fontSize: 17,
-              color: "#8d7e6a",
+              color: "#666666",
               marginTop: 12,
               marginBottom: 0,
-              fontFamily: serifFont,
+              fontFamily: latoFont,
               lineHeight: 1.5,
             }}
           >
@@ -146,9 +141,9 @@ export default function OrderCompleteContent() {
             <label
               style={{
                 fontSize: 15,
-                color: "#3d3929",
-                fontFamily: serifFont,
-                fontWeight: 500,
+                color: "#333333",
+                fontFamily: latoFont,
+                fontWeight: 700,
               }}
             >
               Want a digital copy? Enter your email
@@ -162,11 +157,11 @@ export default function OrderCompleteContent() {
                 width: "100%",
                 padding: "14px 16px",
                 fontSize: 16,
-                fontFamily: serifFont,
-                border: "1.5px solid #ddd5c8",
+                fontFamily: latoFont,
+                border: "1.5px solid #e8e5f5",
                 borderRadius: 12,
-                backgroundColor: "#faf8f4",
-                color: "#3d3929",
+                backgroundColor: "#f8f7fc",
+                color: "#333333",
                 outline: "none",
                 boxSizing: "border-box",
               }}
@@ -178,9 +173,9 @@ export default function OrderCompleteContent() {
                 width: "100%",
                 padding: "14px",
                 fontSize: 16,
-                fontWeight: 600,
-                fontFamily: serifFont,
-                backgroundColor: "#da7756",
+                fontWeight: 700,
+                fontFamily: latoFont,
+                backgroundColor: "#fe9528",
                 color: "#fff",
                 border: "none",
                 borderRadius: 12,
@@ -206,8 +201,8 @@ export default function OrderCompleteContent() {
             <p
               style={{
                 fontSize: 17,
-                color: "#3d3929",
-                fontFamily: serifFont,
+                color: "#333333",
+                fontFamily: latoFont,
                 margin: 0,
               }}
             >
@@ -222,9 +217,12 @@ export default function OrderCompleteContent() {
             all: "unset",
             cursor: "pointer",
             fontSize: 15,
-            color: "#a89a85",
-            fontFamily: serifFont,
+            color: "#2f2663",
+            fontFamily: latoFont,
             padding: "8px 16px",
+            border: "2px solid #2f2663",
+            borderRadius: 8,
+            fontWeight: 700,
           }}
         >
           Create another postcard
@@ -243,11 +241,12 @@ export default function OrderCompleteContent() {
         <span
           style={{
             fontSize: 12,
-            color: "#c4b8a6",
-            fontFamily: serifFont,
+            fontStyle: "italic",
+            color: "#666666",
+            fontFamily: latoFont,
           }}
         >
-          Powered by Printbox
+          Powered by Masterpiece AI &amp; Printbox
         </span>
       </div>
     </div>
