@@ -206,9 +206,12 @@ export default function Home() {
                 <div
                   style={{
                     width: "100%",
-                    aspectRatio: "4 / 3",
                     backgroundColor: "#f4f2fa",
-                    overflow: "hidden",
+                    padding: 16,
+                    boxSizing: "border-box",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
                   {product.image ? (
@@ -218,8 +221,8 @@ export default function Home() {
                       alt={product.display_name?.en || product.name}
                       style={{
                         width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
+                        height: "auto",
+                        objectFit: "contain",
                         display: "block",
                       }}
                     />
