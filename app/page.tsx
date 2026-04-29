@@ -104,9 +104,7 @@ export default function Home() {
               fontFamily: latoFont,
             }}
           >
-            Create your
-            <br />
-            postcard
+            Create your postcard
           </h1>
           <p
             style={{
