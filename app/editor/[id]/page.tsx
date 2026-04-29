@@ -65,6 +65,7 @@ function EditorContent() {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const initializedRef = useRef(false);
   const pendingProjectIdRef = useRef<string | null>(null);
+  const trackedProjectIdRef = useRef<string | null>(null);
 
   const autoPayOrder = useCallback(async (projectId: string, email: string) => {
     try {
@@ -107,6 +108,83 @@ function EditorContent() {
     }
     createSession();
   }, []);
+
+  // Track project UUID from URL changes — Printbox SDK puts it in the path
+  useEffect(() => {
+    function extractProjectId(): string | null {
+      // Printbox SDK URL patterns: /editor/{moduleId}/{step}/{projectUuid}
+      const parts = window.location.pathname.split("/").filter(Boolean);
+      // Look for a UUID-like segment (32 hex chars or 8-4-4-4-12 format)
+      for (const part of parts) {
+        if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(part) ||
+            /^[0-9a-f]{32}$/i.test(part)) {
+          return part;
+        }
+      }
+      return null;
+    }
+
+    function trackUrl() {
+      const id = extractProjectId();
+      if (id) {
+        trackedProjectIdRef.current = id;
+        console.log("[Fotobudka] Tracked project ID from URL:", id);
+      }
+    }
+
+    // Check on popstate and also poll (SDK uses pushState which doesn't fire popstate)
+    window.addEventListener("popstate", trackUrl);
+    const interval = setInterval(trackUrl, 2000);
+    trackUrl();
+
+    return () => {
+      window.removeEventListener("popstate", trackUrl);
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Catch Printbox SDK attribute validation errors and proceed with order
+  useEffect(() => {
+    function handleSdkError(event: ErrorEvent) {
+      const msg = event.message || "";
+      if (msg.includes("attribute that has no selected value") ||
+          msg.includes("PbxTextError")) {
+        console.warn("[Fotobudka] Caught Printbox attribute validation error, bypassing...");
+        event.preventDefault();
+
+        const projectId = pendingProjectIdRef.current || trackedProjectIdRef.current;
+        if (projectId && overlayStep === "hidden") {
+          console.log("[Fotobudka] Using tracked project ID:", projectId);
+          pendingProjectIdRef.current = projectId;
+          setOverlayStep("email");
+        }
+      }
+    }
+
+    function handleUnhandledRejection(event: PromiseRejectionEvent) {
+      const reason = event.reason;
+      const msg = reason?.message || String(reason) || "";
+      if (msg.includes("attribute that has no selected value") ||
+          msg.includes("PbxTextError")) {
+        console.warn("[Fotobudka] Caught Printbox attribute rejection, bypassing...");
+        event.preventDefault();
+
+        const projectId = pendingProjectIdRef.current || trackedProjectIdRef.current;
+        if (projectId && overlayStep === "hidden") {
+          console.log("[Fotobudka] Using tracked project ID:", projectId);
+          pendingProjectIdRef.current = projectId;
+          setOverlayStep("email");
+        }
+      }
+    }
+
+    window.addEventListener("error", handleSdkError);
+    window.addEventListener("unhandledrejection", handleUnhandledRejection);
+    return () => {
+      window.removeEventListener("error", handleSdkError);
+      window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+    };
+  }, [overlayStep]);
 
   // Initialize editor once BOTH script loaded AND session ready
   useEffect(() => {
@@ -157,10 +235,18 @@ function EditorContent() {
     printbox.hideECommerce = () => {};
     printbox.showECommerce = () => {};
 
-    printbox.externalEventBusListener = ({ eventName }) => {
-      console.log("[Fotobudka] Event:", eventName);
-      if (eventName === "AppWasInitialized") {
+    printbox.externalEventBusListener = (data: { eventName: string; [key: string]: unknown }) => {
+      console.log("[Fotobudka] Event:", data.eventName, data);
+      if (data.eventName === "AppWasInitialized") {
         setLoading(false);
+      }
+      // Capture project ID from any SDK event that contains it
+      const eventProjectId = (data as Record<string, unknown>).projectId ||
+        (data as Record<string, unknown>).projectUuid ||
+        (data as Record<string, unknown>).project_uuid;
+      if (typeof eventProjectId === "string" && eventProjectId) {
+        trackedProjectIdRef.current = eventProjectId;
+        console.log("[Fotobudka] Tracked project ID from event:", eventProjectId);
       }
     };
 
