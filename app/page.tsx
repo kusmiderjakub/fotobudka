@@ -289,11 +289,11 @@ export default function Home() {
       {/* Bottom branding */}
       <div
         style={{
-          position: "absolute",
-          bottom: 28,
-          left: 0,
-          right: 0,
+          marginTop: "auto",
+          paddingTop: 32,
+          paddingBottom: 28,
           textAlign: "center",
+          width: "100%",
         }}
       >
         <span
