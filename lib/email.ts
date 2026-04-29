@@ -59,12 +59,6 @@ const EMAIL_SUBJECT = "You've got mail! Your postcard has just arrived.";
 
 function buildEmailHtml(isImage: boolean, projectUuid: string): string {
   const shareUrl = `${getAppBaseUrl()}/share/${projectUuid}`;
-  const shareText = encodeURIComponent(
-    "Just got my postcard from FESPA 2026 in Barcelona. Stamped with Masterpiece AI by @Printbox \u{1f1ea}\u{1f1f8}\u{2709}\u{fe0f}!\n\n#StampedWithMasterpieceAI #PostcardFromFESPA #FESPA2026"
-  );
-  const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
-  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${shareText}`;
-  const tiktokUrl = `https://www.tiktok.com/search?q=%23StampedWithMasterpieceAI`;
 
   const postcardSection = isImage
     ? `<div style="padding: 0 40px;">
@@ -141,27 +135,11 @@ function buildEmailHtml(isImage: boolean, projectUuid: string): string {
         </p>
       </div>
 
-      <!-- Social media buttons -->
+      <!-- Share button — links to the share page where Web Share API can attach the image -->
       <div style="padding: 0 40px 32px; text-align: center;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
-          <tr>
-            <td style="padding: 0 6px;">
-              <a href="${linkedInUrl}" target="_blank" style="display: inline-block; background-color: #fe9528; color: #ffffff; font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; border-radius: 8px; padding: 12px 24px;">
-                LinkedIn
-              </a>
-            </td>
-            <td style="padding: 0 6px;">
-              <a href="${facebookUrl}" target="_blank" style="display: inline-block; background-color: #fe9528; color: #ffffff; font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; border-radius: 8px; padding: 12px 24px;">
-                Facebook
-              </a>
-            </td>
-            <td style="padding: 0 6px;">
-              <a href="${tiktokUrl}" target="_blank" style="display: inline-block; background-color: #fe9528; color: #ffffff; font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; border-radius: 8px; padding: 12px 24px;">
-                TikTok
-              </a>
-            </td>
-          </tr>
-        </table>
+        <a href="${shareUrl}" target="_blank" style="display: inline-block; background-color: #fe9528; color: #ffffff; font-family: 'Lato', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; border-radius: 8px; padding: 12px 48px;">
+          Share your postcard
+        </a>
       </div>
 
       <!-- Footer -->

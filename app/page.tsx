@@ -239,22 +239,6 @@ export default function Home() {
                     </div>
                   )}
                 </div>
-                <div style={{ padding: "12px 14px 14px" }}>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: "#333333",
-                      fontFamily: latoFont,
-                      lineHeight: 1.3,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {product.display_name?.en || product.name}
-                  </div>
-                </div>
               </button>
             ))}
           </div>
