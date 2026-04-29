@@ -172,7 +172,7 @@ export default function Home() {
               width: "100%",
               display: "grid",
               gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 20,
+              gap: 24,
             }}
           >
             {products.map((product) => (
@@ -182,31 +182,32 @@ export default function Home() {
                 style={{
                   all: "unset",
                   cursor: "pointer",
-                  borderRadius: 14,
+                  borderRadius: 16,
                   overflow: "hidden",
                   backgroundColor: "#fff",
-                  boxShadow:
-                    "0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.07)",
-                  transition: "transform 200ms ease, box-shadow 200ms ease",
+                  border: "1.5px solid #e8e5f5",
+                  boxShadow: "0 1px 4px rgba(47,38,99,0.06)",
+                  transition: "transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease",
                   display: "flex",
                   flexDirection: "column",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-3px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 2px 6px rgba(0,0,0,0.06), 0 12px 36px rgba(0,0,0,0.12)";
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                  e.currentTarget.style.boxShadow = "0 8px 30px rgba(47,38,99,0.15)";
+                  e.currentTarget.style.borderColor = "#fe9528";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow =
-                    "0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.07)";
+                  e.currentTarget.style.boxShadow = "0 1px 4px rgba(47,38,99,0.06)";
+                  e.currentTarget.style.borderColor = "#e8e5f5";
                 }}
               >
+                {/* Product image */}
                 <div
                   style={{
                     width: "100%",
-                    aspectRatio: "1 / 1",
-                    backgroundColor: "#e8e5f5",
+                    aspectRatio: "4 / 3",
+                    backgroundColor: "#f4f2fa",
                     overflow: "hidden",
                   }}
                 >
@@ -238,6 +239,45 @@ export default function Home() {
                       No image
                     </div>
                   )}
+                </div>
+
+                {/* Product info + CTA */}
+                <div style={{ padding: "16px 16px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 700,
+                      color: "#2f2663",
+                      fontFamily: latoFont,
+                      lineHeight: 1.3,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {product.display_name?.en || product.name}
+                  </div>
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                      padding: "10px 0",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      fontFamily: latoFont,
+                      color: "#ffffff",
+                      backgroundColor: "#fe9528",
+                      borderRadius: 8,
+                      textAlign: "center",
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z" />
+                    </svg>
+                    Start designing
+                  </div>
                 </div>
               </button>
             ))}
